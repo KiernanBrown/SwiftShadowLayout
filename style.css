@@ -1,0 +1,34 @@
+/* CSS files add styling rules to your content */
+
+#blueCanvas {
+  background-image: url(https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FBluePurpleLayout.png?v=1594978520719);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#gameCanvas {
+  position: absolute;
+  left: 359px;
+  top: 42px;
+}
+
+#camCanvas {
+  position: absolute;
+  left: 56px;
+  top: 42px;
+}
+
+#camEmote {
+  position: absolute;
+  visibility : hidden;
+}
+
+#camBlack {
+  position: absolute;
+  left: 56px;
+  top: 42px;
+  width: 277px;
+  height: 202px;
+  visibility: hidden;
+}
