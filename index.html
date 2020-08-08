@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <title>SwiftShadow Layout</title>
+</head>
+
+<body>
+  <div style="display:none" class="rewards">
+    <!-- Canvas for drawing my blue layout. Not used yet (outside of background image) -->
+    <canvas id="blueCanvas" width="1920" height="1080">
+        </canvas>
+    <!-- Canvas for drawing on gameplay -->
+    <canvas id="gameCanvas" width="1506" height="837">
+      </canvas>
+      <!-- x:359 (+1), y:42 (+1) -->
+    <img id="camBlack" src = "https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FcamBlack.png?v=1595109417009">
+    <img id="camEmote">
+    <!-- Canvas for drawing on webcam. Not used yet -->
+    <canvas id="camCanvas" width="277" height="202">
+      </canvas>
+
+  </div>
+  <div class="container">
+    <div class="row">
+      <div style="display:none" class="auth text-center">
+        <a id="auth-link">Connect with Twitch</a>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="main.js"></script>
+</body>
+
+</html>
