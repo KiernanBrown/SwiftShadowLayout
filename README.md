@@ -4,7 +4,7 @@ This project is a Twitch Overlay that I use when streaming (specifically speedru
 ### Current Features
 * Support for channel point rewards being redeemed:
   * Chat members can give luck to me during a run as a channel point reward. This will pick from a set of messages to display on stream and play a sound effect.
-  * Chat members will be able to replace my facecam with a supported emote of thier choice. This is undergoing bugfixing but is almost finished.
+  * Chat members will be able to replace my facecam with a supported emote of thier choice.
 
 ### Planned Features
 * Support more emotes for the facecam emote reward. Look into a way of getting an emote URL just providing the name of an emote (I haven't found anything on this front yet).
