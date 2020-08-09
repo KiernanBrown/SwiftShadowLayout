@@ -1,37 +1,13 @@
-Welcome to Glitch
-=================
+# SwiftShadow Layout
+This project is a Twitch Overlay that I use when streaming (specifically speedrunning). This is used in a Browser source in OBS that is placed on top of my gameplay/webcam/other elements I have on stream. Could be a useful reference for other streamers/devs that want to interact wtih channel points for their own streams as well.
 
-Click `Show` in the header to see your app live. Updates to your code will instantly deploy and update live.
+### Current Features
+* Support for channel point rewards being redeemed:
+  * Chat members can give luck to me during a run as a channel point reward. This will pick from a set of messages to display on stream and play a sound effect.
+  * Chat members will be able to replace my facecam with a supported emote of thier choice. This is undergoing bugfixing but is almost finished.
 
-**Glitch** is the friendly community where you'll build the app of your dreams. Glitch lets you instantly create, remix, edit, and host an app, bot or site, and you can invite collaborators or helpers to simultaneously edit code with you.
+### Planned Features
+* Support more emotes for the facecam emote reward. Look into a way of getting an emote URL just providing the name of an emote (I haven't found anything on this front yet).
+* Chat members will be able to modify the color of my layout in some way.
+* Connect with LiveSplit Server to be able to detect when I split/reset/gold a split.
 
-Find out more [about Glitch](https://glitch.com/about).
-
-
-Your Project
-------------
-
-### ← README.md
-
-That's this file, where you can tell people what your cool website does and how you built it.
-
-### ← index.html
-
-Where you'll write the content of your website. 
-
-### ← style.css
-
-CSS files add styling rules to your content.
-
-### ← script.js
-
-If you're feeling fancy you can add interactivity to your site with JavaScript.
-
-### ← assets
-
-Drag in `assets`, like images or music, to add them to your project
-
-Made by [Glitch](https://glitch.com/)
--------------------
-
-\ ゜o゜)ノ
