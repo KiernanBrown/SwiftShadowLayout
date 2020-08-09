@@ -3,6 +3,7 @@ const redirectURI = 'https://swiftshadow-layout.glitch.me/';
 const scope = 'channel_read+channel:read:redemptions';
 let channelId;
 let ws;
+let splitsSocket;
 let blueCanvas;
 let blueCtx;
 let gameCanvas;
@@ -211,6 +212,10 @@ function resetRun() {
   lucks = [];
 }
 
+function startSplitsSocket() {
+  
+}
+
 // Connect
 function connect() {
   var heartbeatInterval = 1000 * 60; //ms between PING's
@@ -274,7 +279,7 @@ function connect() {
 
   // Create and open WebSocket
   ws = new WebSocket('wss://pubsub-edge.twitch.tv');
-  ws.onopen = function (event) {
+  ws.onopen = (event) => {
     heartbeat();
     heartbeatHandle = setInterval(heartbeat, heartbeatInterval);
 
@@ -296,11 +301,11 @@ function connect() {
 
   };
 
-  ws.onerror = function (error) {
+  ws.onerror = (error) => {
     console.dir(error);
   };
 
-  ws.onmessage = function (event) {
+  ws.onmessage = (event) => {
     var message = JSON.parse(event.data);
 
     if (message.type == 'RECONNECT') {
@@ -392,6 +397,8 @@ function connect() {
     clearInterval(heartbeatHandle);
     setTimeout(connect, reconnectInterval);
   };
+  
+  startSplitsSocket();
 
 }
 
