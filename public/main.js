@@ -330,36 +330,36 @@ function connect() {
         var rewardUser = redemption.user.display_name;
 
         // Generate what type of luck
-        let luckNum = Math.floor(Math.random() * 750);
+        let luckNum = Math.floor(Math.random() * 1000);
         let luckTime = 4000;
         let luckMessage = '';
         let luckId = '';
         let luckAudio;
         let luckFont = '64px Arial';
 
-        if (luckNum < 413) {
+        if (luckNum < 550) {
           // ~55% chance of good luck
           luckId = 'good';
           luckMessage = `${rewardUser} has given Good Luck!`;
           luckAudio = goodLuckAudio;
-        } else if (luckNum < 616) {
+        } else if (luckNum < 820) {
           // ~27% chance of bad luck
           luckId = 'bad';
           luckMessage = `${rewardUser} has given Bad Luck!`;
           luckAudio = badLuckAudio;
-        } else if (luckNum < 702) {
+        } else if (luckNum < 940) {
           // ~12% chance of glhf
           luckId = 'glhf';
           luckMessage = `GLHF from ${rewardUser}!!!`;
           luckAudio = glhfAudio;
-        } else if (luckNum < 747) {
-          // ~5.8% chance to curse the run
+        } else if (luckNum < 995) {
+          // ~5.5% chance to curse the run
           luckId = 'curse';
           luckTime = 6000;
           luckMessage = `Oh no! ${rewardUser} cursed the run!`;
           luckAudio = cursedAudio;
-        } else if (luckNum < 750) {
-          // 0.4% chance for a gifted sub
+        } else if (luckNum < 1000) {
+          // 0.5% chance for a gifted sub
           luckId = 'sub';
           luckTime = 6000;
           luckFont = '58px Arial';
