@@ -373,21 +373,35 @@ function connect() {
         }
       } else if (redemption.reward.id === 'e1d249af-4baf-4644-b53e-27376e79b234') {
         // Channel point reward for facecam emote
-        let emoteName = redemption.user_input.toLowerCase();
-        emoteName = emoteName.replace(/\s/g, ''); // Remove whitespace
+        // Split the message on spaces
+        let userMsg = redemption.user_input.toLowerCase().split(' ');
+      
+        let selectedEmote;
+        if (userMsg.length > 0) {
+          // Get the first supported emote in the message
+          for (let i = 0; i < userMsg.length; i++) {
+            let emoteName = userMsg[i].replace(/\s/g, '');
+            console.dir(emoteName);
+            
+            selectedEmote = emotes.find(e => {
+              return e.name.toLowerCase() === emoteName
+            });
+            
+            if (selectedEmote) {
+              break;
+            }
+          }
+        }
 
-        // Find the selected emote by name
-        let selectedEmote = emotes.find(e => {
-          return e.name.toLowerCase() === emoteName
-        });
-
-        // Add this to the queue
-        camRewardQueue.push({
-          'type': 'emote',
-          'emote': selectedEmote,
-          'time': 30000,
-          'maxTime': 30000,
-        });
+        if (selectedEmote) {
+          // Add this to the queue
+          camRewardQueue.push({
+            'type': 'emote',
+            'emote': selectedEmote,
+            'time': 30000,
+            'maxTime': 30000,
+          });
+        }
       }
     }
   };
