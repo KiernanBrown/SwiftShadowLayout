@@ -1,5 +1,5 @@
 const clientId = 'ttwsfmzramvda8ualo9mi9gc701580';
-const redirectURI = 'https://swiftshadow-layout.glitch.me/';
+const redirectURI = 'http://localhost:3000';
 const scope = 'channel_read+channel:read:redemptions';
 let channelId;
 let ws;
@@ -212,8 +212,34 @@ function resetRun() {
   lucks = [];
 }
 
+// Open a WebSocket that works with LiveSplit
 function startSplitsSocket() {
-  
+  splitsSocket = new WebSocket('ws://192.168.1.152:15721');
+  splitsSocket.onopen = (event) => {
+    console.dir('Connected to LiveSplit');
+    console.dir(event);
+  };
+
+  splitsSocket.onmessage = (event) => {
+    console.dir('Message Received');
+    let data = JSON.parse(event.data);
+    let action = data.action;
+    console.dir(data);
+    console.dir(action);
+
+    if (action === 'reset') {
+      // A run has reset
+      resetRun();
+    } else if (action === 'split') {
+      // Runner has split, get split info
+      let split = data.segments[data.currentSplitIndex - 1];
+      console.dir(split);
+    }
+  }
+
+  splitsSocket.onerror = (error) => {
+    console.dir(error);
+  };
 }
 
 // Connect
@@ -223,12 +249,12 @@ function connect() {
   var heartbeatHandle;
 
   // Reset the run when hitting -
-  // This should (hopefully) be changed in the future to work with LiveSplit's Reset event (using LiveSplit Server WebSocket?)
-  window.addEventListener("keypress", (event) => {
+  // No longer necessary because we're using LiveSplit WebSocket Server
+  /*window.addEventListener("keypress", (event) => {
     if (event.code === 'NumpadSubtract') {
       resetRun();
     }
-  });
+  });*/
 
   // Populate emotes
   // There is definitely a better way of doing this. Is there an API that can get an image URL by emote name?
