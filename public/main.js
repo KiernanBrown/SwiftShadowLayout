@@ -15,11 +15,11 @@ let camBlack;
 let lastUpdate = Date.now();
 
 // Audio files for luck
-const goodLuckAudio = new Audio('https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FGood%20Luck.mp3?v=1594953838510');
-const badLuckAudio = new Audio('https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FYikes.mp3?v=1594970570632');
-const glhfAudio = new Audio('https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FGLHF.mp3?v=1594970570704');
-const cursedAudio = new Audio('https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FTerror.mp3?v=1594970570659');
-const fanfareAudio = new Audio('https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FFanfare.mp3?v=1594970570936');
+const goodLuckAudio = new Audio('/media/sounds/GoodLuck.mp3');
+const badLuckAudio = new Audio('/media/sounds/Yikes.mp3');
+const glhfAudio = new Audio('/media/sounds/GLHF.mp3');
+const cursedAudio = new Audio('/media/sounds/Terror.mp3');
+const fanfareAudio = new Audio('/media/sounds/Fanfare.mp3');
 
 let lucks = [];
 let rewardQueue = [];
@@ -36,7 +36,7 @@ class Emote {
     this.url = url;
     this.size = size ? size : 112;
     this.img = new Image(this.size, this.size);
-    this.img.src = url;
+    this.img.src = 'url';
 
     // Add a property for if the emote is a gif (not used for anything yet but maybe in the future)
     if (url.includes('gif?')) {
@@ -258,49 +258,71 @@ function connect() {
 
   // Populate emotes
   // There is definitely a better way of doing this. Is there an API that can get an image URL by emote name?
-  emotes.push(new Emote('swifts7Bless', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FSwiftShadow_AerithBless.png?v=1595560196571', 1000));
-  emotes.push(new Emote('swifts7Flex', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FSwiftShadow_TifaFlex.png?v=1595560196740', 1000));
-  emotes.push(new Emote('swifts7Blush', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FSwiftShadow_CloudBlush.png?v=1595560197015', 1000));
-  emotes.push(new Emote('swifts7Troll', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FSwiftShadow_RocheTroll.png?v=1595560197073', 1000));
-  emotes.push(new Emote('swifts7Rage', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FSwiftShadow_MadamMRage.png?v=1595560197663', 1000));
-  emotes.push(new Emote('swifts7Love', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7LoveL.png?v=1595560180578'));
-  emotes.push(new Emote('swifts7NotLikeThis', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7NotLikeThisL.png?v=1595560180762'));
-  emotes.push(new Emote('swifts7POGGERS', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7POGGERSL.png?v=1595560180692'));
-  emotes.push(new Emote('swifts7Pout', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7PoutL.png?v=1595560181002'));
-  emotes.push(new Emote('swifts7Wink', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7TTL.png?v=1595560181028'));
-  emotes.push(new Emote('swifts7Nut', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7NutL.png?v=1595560181050'));
-  emotes.push(new Emote('swifts7Hi', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7HiL.png?v=1595560180646'));
-  emotes.push(new Emote('swifts7Nice', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7NiceL.png?v=1594952518885'));
-  emotes.push(new Emote('swifts7EZ', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7EZL.png?v=1595560180923'));
-  emotes.push(new Emote('swifts7LMAO', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7LMAOL.png?v=1595560180627'));
-  emotes.push(new Emote('swifts7Gun', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7GunL.png?v=1595560180859'));
-  emotes.push(new Emote('swifts7AYAYA', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7AYAYAL.png?v=1595560180604'));
-  emotes.push(new Emote('swifts7Pog', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7PogL.png?v=1595560180667'));
-  emotes.push(new Emote('Swifts7Sandbag', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7SandbagResized.png?v=1595570229802', 128));
-  emotes.push(new Emote('PepeHands', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FPepeHands.png?v=1594948745241', 128));
-  emotes.push(new Emote('YEP', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FYep.png?v=1594952194613', 128));
-  emotes.push(new Emote('Pepega', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FPepega.png?v=1595570589772'));
-  emotes.push(new Emote('Sadge', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FSadge.png?v=1595570752340'));
-  emotes.push(new Emote('POGGERS', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FPOGGERS.png?v=1594952696631'));
-  emotes.push(new Emote('YuukoBlank', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FYuukoBlank.png?v=1594952305010', 128));
-  emotes.push(new Emote('TimesaveForNextRun', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FTimesaveForNextRun.png?v=1594952630985', 128));
-  emotes.push(new Emote('MioNotLikeThis', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FMioNotLikeThis.png?v=1595104387116'));
+  emotes.push(new Emote('swifts7Bless', '/media/emotes/SwiftShadow_AerithBless.png', 1000));
+  emotes.push(new Emote('swifts7Flex', '/media/emotes/SwiftShadow_TifaFlex.png', 1000));
+  emotes.push(new Emote('swifts7Blush', '/media/emotes/SwiftShadow_CloudBlush.png', 1000));
+  emotes.push(new Emote('swifts7Troll', '/media/emotes/SwiftShadow_RocheTroll.png', 1000));
+  emotes.push(new Emote('swifts7Rage', '/media/emotes/SwiftShadow_MadamMRage.png', 1000));
+  emotes.push(new Emote('swifts7Love', '/media/emotes/swifts7LoveL.png'));
+  emotes.push(new Emote('swifts7NotLikeThis', '/media/emotes/swifts7NotLikeThisL.png'));
+  emotes.push(new Emote('swifts7POGGERS', '/media/emotes/swifts7POGGERSL.png'));
+  emotes.push(new Emote('swifts7Pout', '/media/emotes/swifts7PoutL.png'));
+  emotes.push(new Emote('swifts7Wink', '/media/emotes/swifts7WinkL.png'));
+  emotes.push(new Emote('swifts7Nut', '/media/emotes/swifts7NutL.png'));
+  emotes.push(new Emote('swifts7Hi', '/media/emotes/swifts7HiL.png'));
+  emotes.push(new Emote('swifts7Nice', '/media/emotes/swifts7NiceL.png'));
+  emotes.push(new Emote('swifts7EZ', '/media/emotes/swifts7EZL.png'));
+  emotes.push(new Emote('swifts7LMAO', '/media/emotes/swifts7LMAOL.png'));
+  emotes.push(new Emote('swifts7Gun', '/media/emotes/swifts7GunL.png'));
+  emotes.push(new Emote('swifts7AYAYA', '/media/emotes/swifts7AYAYAL.png'));
+  emotes.push(new Emote('swifts7Pog', '/media/emotes/swifts7PogL.png'));
+  emotes.push(new Emote('Swifts7Sandbag', '/media/emotes/swifts7SandbagResized.png', 128));
+  emotes.push(new Emote('PepeHands', 'https://cdn.betterttv.net/emote/59f27b3f4ebd8047f54dee29/3x'));
+  emotes.push(new Emote('PepeLmao', 'https://cdn.frankerfacez.com/emoticon/214658/4', 128));
+  emotes.push(new Emote('YEP', 'https://cdn.frankerfacez.com/emoticon/418189/4', 128));
+  emotes.push(new Emote('Pepega', 'https://cdn.betterttv.net/emote/5aca62163e290877a25481ad/3x'));
+  emotes.push(new Emote('Sadge', 'https://cdn.betterttv.net/emote/5e0fa9d40550d42106b8a489/3x'));
+  emotes.push(new Emote('POGGERS', 'https://cdn.betterttv.net/emote/58ae8407ff7b7276f8e594f2/3x'));
+  emotes.push(new Emote('YuukoBlank', 'https://cdn.frankerfacez.com/emoticon/238499/4', 128));
+  emotes.push(new Emote('YuukoS', 'https://cdn.betterttv.net/emote/5d7c0bbfc0652668c9e4c59b/3x'));
+  emotes.push(new Emote('YuukO', 'https://cdn.betterttv.net/emote/5d7c1192d2458468c1f44662/3x'));
+  emotes.push(new Emote('YuukoYikes', 'https://cdn.betterttv.net/emote/5d7c170cb58d1868c285c7aa/3x'));
+  emotes.push(new Emote('YuukoKappa', 'https://cdn.betterttv.net/emote/5d8677d4d2458468c1f47677/3x'));
+  emotes.push(new Emote('TimesaveForNextRun', 'https://cdn.frankerfacez.com/emoticon/462840/4', 128));
+  emotes.push(new Emote('MioNotLikeThis', 'https://cdn.betterttv.net/emote/5d867d18b58d1868c285f784/3x'));
   emotes.push(new Emote('peepoPOG', 'https://cdn.betterttv.net/emote/5b69afcde1dd39261a3b9d53/3x'));
   emotes.push(new Emote('peepoS', 'https://cdn.betterttv.net/emote/5a26924bfc6e584787d98544/3x'));
   emotes.push(new Emote('peepoHappy', 'https://cdn.betterttv.net/emote/5a16ee718c22a247ead62d4a/3x'));
   emotes.push(new Emote('peepoSad', 'https://cdn.betterttv.net/emote/5a16ddca8c22a247ead62ceb/3x'));
+  emotes.push(new Emote('peepoPoo', 'https://cdn.frankerfacez.com/emoticon/307828/4', 128));
+  emotes.push(new Emote('pigO', 'https://cdn.frankerfacez.com/emoticon/386230/4', 128));
+  emotes.push(new Emote('cfAYAYA', 'https://cdn.frankerfacez.com/emoticon/420824/4', 128));
+  emotes.push(new Emote('SaberHappy', 'https://cdn.frankerfacez.com/emoticon/51458/4', 128));
+  emotes.push(new Emote('LULW', 'https://cdn.frankerfacez.com/emoticon/139407/4', 128));
+  emotes.push(new Emote('Kairi', 'https://cdn.frankerfacez.com/emoticon/375263/4', 128));
+  emotes.push(new Emote('JunkoLewd', 'https://cdn.frankerfacez.com/emoticon/126838/4', 128));
+  emotes.push(new Emote('FeelsBaseMan', 'https://cdn.frankerfacez.com/emoticon/391184/4', 128));
+  emotes.push(new Emote('EZ', 'https://cdn.betterttv.net/emote/5590b223b344e2c42a9e28e3/3x'));
   
   // GIF Emotes
-  emotes.push(new Emote('YuukoGasm', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FYuukoGasm.gif?v=1595104387634'));
-  emotes.push(new Emote('RainbowPls', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FRainbowPls.gif?v=1595112882845'));
-  emotes.push(new Emote('kannaDansu', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FkannaDansu.gif?v=1595112916803'));
-  emotes.push(new Emote('ThisIsFine', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FThisIsFine.gif?v=1595112917925'));
-  emotes.push(new Emote('SandbagHop', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FSandbagHop.gif?v=1595570277899'));
-  emotes.push(new Emote('PeepoPooPoo', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FpeepoPooPoo.gif?v=1595570642274'));
-  emotes.push(new Emote('monkaSTEER', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FmonkaSTEER.gif?v=1596949988825', 110));
+  emotes.push(new Emote('YuukoGasm', 'https://cdn.betterttv.net/emote/5d9803411df66f68c80c7a2d/3x'));
+  emotes.push(new Emote('RainbowPls', 'https://cdn.betterttv.net/emote/5b35cae2f3a33e2b6f0058ef/3x'));
+  emotes.push(new Emote('kannaDansu', 'https://cdn.betterttv.net/emote/5a848b1cc577c33d3e375afe/3x'));
+  emotes.push(new Emote('ThisIsFine', 'https://cdn.betterttv.net/emote/5e2914861df9195f1a4cd411/3x'));
+  emotes.push(new Emote('SandbagHop', 'https://cdn.betterttv.net/emote/5d7954fdbd340415e9f33ba5/3x'));
+  emotes.push(new Emote('PeepoPooPoo', 'https://cdn.betterttv.net/emote/5c3427a55752683d16e409d1/3x'));
+  emotes.push(new Emote('peepoGoolysses', 'https://cdn.betterttv.net/emote/5f246d9bfe85fb4472d1c339/3x'));
+  emotes.push(new Emote('monkaSTEER', '/media/emotes/monkaSTEER.gif', 110));
   emotes.push(new Emote('WAYTOOPOGGERS', 'https://cdn.betterttv.net/emote/5f2672a5fe85fb4472d1e207/3x'));
   emotes.push(new Emote('blobDance', 'https://cdn.betterttv.net/emote/5ada077451d4120ea3918426/3x'));
   emotes.push(new Emote('peepoSHAKE', 'https://cdn.betterttv.net/emote/5b83938ca69b8634bf059473/3x'));
+  emotes.push(new Emote('Monka', 'https://cdn.betterttv.net/emote/5c37cc6743a23a61c2449c73/3x'));
+  emotes.push(new Emote('PepeJAMJAM', 'https://cdn.betterttv.net/emote/5c36fba2c6888455faa2e29f/3x'));
+  emotes.push(new Emote('AYAYABASSS', 'https://cdn.betterttv.net/emote/5bbecbb0605b7273d160f6f6/3x'));
+  emotes.push(new Emote('Jammies', 'https://cdn.betterttv.net/emote/5d2dc7dcff6ed3680130eb6d/3x', 100));
+  emotes.push(new Emote('HeartGirl', 'https://cdn.betterttv.net/emote/5ae39aa3695e497cec5d2218/3x'));
+  emotes.push(new Emote('SenpaiWhoop', 'https://cdn.betterttv.net/emote/5ada1b9c35ca0201c05aed72/3x'));
+  emotes.push(new Emote('ThinkingWright', 'https://cdn.betterttv.net/emote/5bec61f9c3cac7088d09c0aa/3x'));
 
   // Set up Canvases
   blueCanvas = document.getElementById('blueCanvas');
