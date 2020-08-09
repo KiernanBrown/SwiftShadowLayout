@@ -223,6 +223,7 @@ function connect() {
   var heartbeatHandle;
 
   // Reset the run when hitting -
+  // This should (hopefully) be changed in the future to work with LiveSplit's Reset event (using LiveSplit Server WebSocket?)
   window.addEventListener("keypress", (event) => {
     if (event.code === 'NumpadSubtract') {
       resetRun();
@@ -240,7 +241,7 @@ function connect() {
   emotes.push(new Emote('swifts7NotLikeThis', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7NotLikeThisL.png?v=1595560180762'));
   emotes.push(new Emote('swifts7POGGERS', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7POGGERSL.png?v=1595560180692'));
   emotes.push(new Emote('swifts7Pout', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7PoutL.png?v=1595560181002'));
-  emotes.push(new Emote('swifts7TT', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7TTL.png?v=1595560181028'));
+  emotes.push(new Emote('swifts7Wink', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7TTL.png?v=1595560181028'));
   emotes.push(new Emote('swifts7Nut', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7NutL.png?v=1595560181050'));
   emotes.push(new Emote('swifts7Hi', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7HiL.png?v=1595560180646'));
   emotes.push(new Emote('swifts7Nice', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2Fswifts7NiceL.png?v=1594952518885'));
@@ -258,12 +259,22 @@ function connect() {
   emotes.push(new Emote('YuukoBlank', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FYuukoBlank.png?v=1594952305010', 128));
   emotes.push(new Emote('TimesaveForNextRun', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FTimesaveForNextRun.png?v=1594952630985', 128));
   emotes.push(new Emote('MioNotLikeThis', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FMioNotLikeThis.png?v=1595104387116'));
+  emotes.push(new Emote('peepoPOG', 'https://cdn.betterttv.net/emote/5b69afcde1dd39261a3b9d53/3x'));
+  emotes.push(new Emote('peepoS', 'https://cdn.betterttv.net/emote/5a26924bfc6e584787d98544/3x'));
+  emotes.push(new Emote('peepoHappy', 'https://cdn.betterttv.net/emote/5a16ee718c22a247ead62d4a/3x'));
+  emotes.push(new Emote('peepoSad', 'https://cdn.betterttv.net/emote/5a16ddca8c22a247ead62ceb/3x'));
+  
+  // GIF Emotes
   emotes.push(new Emote('YuukoGasm', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FYuukoGasm.gif?v=1595104387634'));
   emotes.push(new Emote('RainbowPls', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FRainbowPls.gif?v=1595112882845'));
   emotes.push(new Emote('kannaDansu', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FkannaDansu.gif?v=1595112916803'));
   emotes.push(new Emote('ThisIsFine', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FThisIsFine.gif?v=1595112917925'));
   emotes.push(new Emote('SandbagHop', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FSandbagHop.gif?v=1595570277899'));
   emotes.push(new Emote('PeepoPooPoo', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FpeepoPooPoo.gif?v=1595570642274'));
+  emotes.push(new Emote('monkaSTEER', 'https://cdn.glitch.com/fb3616f0-e04e-498a-a49a-c7fd168463d8%2FmonkaSTEER.gif?v=1596949988825', 110));
+  emotes.push(new Emote('WAYTOOPOGGERS', 'https://cdn.betterttv.net/emote/5f2672a5fe85fb4472d1e207/3x'));
+  emotes.push(new Emote('blobDance', 'https://cdn.betterttv.net/emote/5ada077451d4120ea3918426/3x'));
+  emotes.push(new Emote('peepoSHAKE', 'https://cdn.betterttv.net/emote/5b83938ca69b8634bf059473/3x'));
 
   // Set up Canvases
   blueCanvas = document.getElementById('blueCanvas');
