@@ -17,6 +17,8 @@ let lastUpdate = Date.now();
 let resetSounds = [];
 let running = false;
 let socket;
+let timerState;
+let prevTimerState;
 
 // Audio files for luck
 const goodLuckAudio = new Audio('/media/sounds/GoodLuck.mp3');
@@ -118,7 +120,6 @@ function updateOverlay() {
   if (overlayQueue.length != 0) {
     let overlay = overlayQueue[0];
     let radius = 0;
-    console.dir(overlay);
 
     overlayCtx.clearRect(0, 0, 1920, 1080);
     if (overlay.time <= 0) {
@@ -151,7 +152,9 @@ function updateOverlay() {
         overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
 
         // Play a sound effect
-        resetSounds[Math.floor(Math.random() * resetSounds.length)].play();
+        if(overlay.sound) {
+          resetSounds[Math.floor(Math.random() * resetSounds.length)].play();
+        }
 
         // Change scene in OBS
         socket.emit('changeScene', 'Grey Overlay');
@@ -160,7 +163,7 @@ function updateOverlay() {
       radius = (overlay.time / overlay.maxTime) * maxRadius;
 
     } else if (overlay.type === 'shift') {
-      console.dir('Layout shifting!!!');
+      console.dir('Layout shifting!');
       // Redshift/Blueshift reward
       if (overlay.time === overlay.maxTime) {
         // Shift the overlay color and set the new overlay
@@ -306,6 +309,11 @@ function resetRun() {
   // Clear out all users who have given luck
   lucks = [];
 
+  // Only play a reset sound if the run has not been finished
+  console.dir(prevTimerState);
+  let sound = prevTimerState === 'Ended' ? false : true;
+  console.dir(sound);
+
   if (overlayQueue.length > 2) {
     // Adjust the overlay queue to prioritize reset
     let currentOverlay = overlayQueue.shift();
@@ -314,6 +322,7 @@ function resetRun() {
       'time': 600,
       'maxTime': 600,
       'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+      'sound': sound,
     });
     overlayQueue.unshift(currentOverlay);
   } else {
@@ -323,6 +332,7 @@ function resetRun() {
       'time': 600,
       'maxTime': 600,
       'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+      'sound': sound,
     });
   }
 }
@@ -365,6 +375,9 @@ function startSplitsSocket() {
     let action = data.action.action;
     console.dir(data);
     console.dir(action);
+
+    prevTimerState = timerState;
+    timerState = data.state.timerState;
 
     if (action === 'reset') {
       // A run has reset
