@@ -4,15 +4,18 @@ const scope = 'channel_read+channel:read:redemptions';
 let channelId;
 let ws;
 let splitsSocket;
-let blueCanvas;
-let blueCtx;
+let overlayCanvas;
+let overlayCtx;
 let gameCanvas;
 let gameCtx;
 let camCanvas;
 let camCtx;
 let camEmote;
 let camBlack;
+let dt = 0;
 let lastUpdate = Date.now();
+let resetSounds = [];
+let running = false;
 
 // Audio files for luck
 const goodLuckAudio = new Audio('/media/sounds/GoodLuck.mp3');
@@ -21,12 +24,15 @@ const glhfAudio = new Audio('/media/sounds/GLHF.mp3');
 const cursedAudio = new Audio('/media/sounds/Terror.mp3');
 const fanfareAudio = new Audio('/media/sounds/Fanfare.mp3');
 
-let lucks = [];
+let overlayQueue = [];
 let rewardQueue = [];
 let camRewardQueue = [];
-let shift = 'blue';
+let lucks = [];
+let shift = 'Blue';
 let emotes = [];
 const emoteSize = 202; // Facecam emote size in pixels
+
+const maxRadius = 1080;
 
 // Emote class
 // Emotes are created given a name, image, and size (default of 112)
@@ -99,15 +105,93 @@ function listen() {
   ws.send(JSON.stringify(message));
 }
 
+function updateDT() {
+  dt = Date.now() - lastUpdate; // Delta time
+  lastUpdate = Date.now();
+}
+
+function updateOverlay() {
+  updateDT();
+
+  // Update overlay if necessary
+  if (overlayQueue.length != 0) {
+    let overlay = overlayQueue[0];
+    let radius = 0;
+    console.dir(overlay);
+
+    overlayCtx.clearRect(0, 0, 1920, 1080);
+    if (overlay.time <= 0) {
+      overlayQueue.shift();
+      if (overlay.type === 'start' || (overlay.type === 'shift' && running)) {
+        overlayCanvas.style.backgroundImage = `url('${overlay.newOverlay.src.substring(overlay.newOverlay.src.indexOf('/media'))}')`;
+        if (overlay.type === 'start') {
+          running = true;
+        }
+      } else {
+        running = false;
+      }
+    } else if (overlay.type === 'start') {
+      // Run has started
+      if (overlay.time === overlay.maxTime) {
+        // Set the new overlay
+        overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
+      }
+
+      radius = ((overlay.maxTime - overlay.time) / overlay.maxTime) * maxRadius;
+
+    } else if (overlay.type === 'reset') {
+      // Run has reset
+      if (overlay.time === overlay.maxTime) {
+        // Set the new overlay
+        overlayCanvas.style.backgroundImage = "url('/media/overlays/GreyOverlay.png')";
+        overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
+
+        // Play a sound effect
+        resetSounds[Math.floor(Math.random() * resetSounds.length)].play();
+      }
+
+      radius = (overlay.time / overlay.maxTime) * maxRadius;
+
+    } else if (overlay.type === 'shift') {
+      console.dir('Layout shifting!!!');
+      // Redshift/Blueshift reward
+      if (overlay.time === overlay.maxTime) {
+        // Shift the overlay color and set the new overlay
+        shift = shift === 'Blue' ? 'Red' : 'Blue';
+        console.dir(shift);
+        overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
+      }
+
+      radius = ((overlay.maxTime - overlay.time) / overlay.maxTime) * maxRadius;
+    }
+
+    // Draw the new overlay
+    if (overlay.time > 0) {
+      if (overlay.type != 'shift' || running) {
+        overlayCtx.save();
+        overlayCtx.beginPath();
+        overlayCtx.arc(overlayCanvas.width / 2, overlayCanvas.height / 2, radius, 0, Math.PI * 2);
+        overlayCtx.clip();
+        overlayCtx.drawImage(overlay.newOverlay, 0, 0);
+        overlayCtx.restore();
+      }
+
+      overlay.time -= dt;
+      overlayQueue[0] = overlay;
+    }
+  }
+
+  // Show any current rewards
+  showRewards();
+  requestAnimationFrame(updateOverlay);
+}
+
 // Show any rewards that are in the queues
 function showRewards() {
-  let dt = Date.now() - lastUpdate; // Delta time
-  lastUpdate = Date.now();
-
   gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
 
+  // Show game rewards if there are any
   if (rewardQueue.length != 0) {
-    console.dir('REWARD!');
     let reward = rewardQueue[0];
     console.dir(reward);
 
@@ -153,10 +237,12 @@ function showRewards() {
       for (let i = 0; i < reward.splitMessage.length; i++) {
         let text = reward.splitMessage[i];
         if (text === reward.user1) {
-          if (shift === 'blue') {
+          if (running && shift === 'Blue') {
             gameCtx.fillStyle = `rgba(61, 65, 166, ${opacity})`;
-          } else if (shift === 'red') {
+          } else if (running && shift === 'Red') {
             gameCtx.fillStyle = `rgb(204, 18, 0, ${opacity})`;
+          } else {
+            gameCtx.fillStyle = `rgba(69, 69, 69, ${opacity})`;
           }
         } else {
           gameCtx.fillStyle = `rgba(242, 242, 242, ${opacity})`;
@@ -202,14 +288,57 @@ function showRewards() {
       camEmote.style.visibility = "hidden";
     }
   }
-
-  requestAnimationFrame(showRewards);
 }
 
 // Used when resetting a run
 function resetRun() {
+  console.dir('run reset');
   // Clear out all users who have given luck
   lucks = [];
+
+  if (overlayQueue.length > 2) {
+    // Adjust the overlay queue to prioritize reset
+    let currentOverlay = overlayQueue.shift();
+    overlayQueue.unshift({
+      'type': 'reset',
+      'time': 500,
+      'maxTime': 500,
+      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+    });
+    overlayQueue.unshift(currentOverlay);
+  } else {
+    // Reset overlay
+    overlayQueue.push({
+      'type': 'reset',
+      'time': 500,
+      'maxTime': 500,
+      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+    });
+  }
+}
+
+// Used when starting a run
+function startRun() {
+  console.dir('run started');
+  if (overlayQueue.length > 2) {
+    // Adjust the overlay queue to prioritize start
+    let currentOverlay = overlayQueue.shift();
+    overlayQueue.unshift({
+      'type': 'start',
+      'time': 500,
+      'maxTime': 500,
+      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+    });
+    overlayQueue.unshift(currentOverlay);
+  } else {
+    // Start overlay
+    overlayQueue.push({
+      'type': 'start',
+      'time': 500,
+      'maxTime': 500,
+      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+    });
+  }
 }
 
 // Open a WebSocket that works with LiveSplit
@@ -223,13 +352,16 @@ function startSplitsSocket() {
   splitsSocket.onmessage = (event) => {
     console.dir('Message Received');
     let data = JSON.parse(event.data);
-    let action = data.action;
+    let action = data.action.action;
     console.dir(data);
     console.dir(action);
 
     if (action === 'reset') {
       // A run has reset
       resetRun();
+    } if (action === 'start') {
+      // A run has started
+      startRun();
     } else if (action === 'split') {
       // Runner has split, get split info
       let split = data.segments[data.currentSplitIndex - 1];
@@ -255,6 +387,14 @@ function connect() {
       resetRun();
     }
   });*/
+
+  // Populate reset sounds
+  let noWay = new Audio('/media/sounds/NoWay.wav');
+  let dumbWay = new Audio('/media/sounds/WhatADumbWayToGo.wav');
+  resetSounds.push(noWay);
+  resetSounds.push(noWay);
+  resetSounds.push(noWay);
+  resetSounds.push(dumbWay);
 
   // Populate emotes
   // There is definitely a better way of doing this. Is there an API that can get an image URL by emote name?
@@ -325,8 +465,8 @@ function connect() {
   emotes.push(new Emote('ThinkingWright', 'https://cdn.betterttv.net/emote/5bec61f9c3cac7088d09c0aa/3x'));
 
   // Set up Canvases
-  blueCanvas = document.getElementById('blueCanvas');
-  blueCtx = blueCanvas.getContext('2d');
+  overlayCanvas = document.getElementById('overlayCanvas');
+  overlayCtx = overlayCanvas.getContext('2d');
   gameCanvas = document.getElementById('gameCanvas');
   gameCtx = gameCanvas.getContext('2d');
   camCanvas = document.getElementById('camCanvas');
@@ -334,7 +474,7 @@ function connect() {
   camEmote = document.getElementById('camEmote');
   camBlack = document.getElementById('camBlack');
 
-  requestAnimationFrame(showRewards);
+  requestAnimationFrame(updateOverlay);
 
   // Create and open WebSocket
   ws = new WebSocket('wss://pubsub-edge.twitch.tv');
@@ -373,6 +513,7 @@ function connect() {
     } else if (message.type == 'MESSAGE') {
       var redemption = JSON.parse(message.data.message).data.redemption;
 
+      console.dir(redemption.reward.id);
       if (redemption.reward.id === "b67d2fa1-8a59-48fa-9727-c997a4734325") {
         // Channel point reward for giving luck
         var rewardUser = redemption.user.display_name;
@@ -461,6 +602,15 @@ function connect() {
             'maxTime': 30000,
           });
         }
+      } else if (redemption.reward.id === '1b9fe4b3-6571-49be-b467-eb687dfd51ef') {
+        console.dir('shift reward redeemed');
+        // Channel point reward for shifting layout
+        overlayQueue.push({
+          'type': 'shift',
+          'time': 500,
+          'maxTime': 500,
+          'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+        });
       }
     }
   };

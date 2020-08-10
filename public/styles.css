@@ -1,7 +1,7 @@
 /* CSS files add styling rules to your content */
 
-#blueCanvas {
-  background-image: url('/media/overlays/BlueOverlay.png');
+#overlayCanvas {
+  background-image: url('/media/overlays/GreyOverlay.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
