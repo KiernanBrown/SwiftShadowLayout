@@ -16,6 +16,7 @@ let dt = 0;
 let lastUpdate = Date.now();
 let resetSounds = [];
 let running = false;
+let socket;
 
 // Audio files for luck
 const goodLuckAudio = new Audio('/media/sounds/GoodLuck.mp3');
@@ -135,6 +136,9 @@ function updateOverlay() {
       if (overlay.time === overlay.maxTime) {
         // Set the new overlay
         overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
+
+        // Change scene in OBS
+        socket.emit('changeScene', `${shift} Overlay`);
       }
 
       radius = ((overlay.maxTime - overlay.time) / overlay.maxTime) * maxRadius;
@@ -148,6 +152,9 @@ function updateOverlay() {
 
         // Play a sound effect
         resetSounds[Math.floor(Math.random() * resetSounds.length)].play();
+
+        // Change scene in OBS
+        socket.emit('changeScene', 'Grey Overlay');
       }
 
       radius = (overlay.time / overlay.maxTime) * maxRadius;
@@ -160,6 +167,9 @@ function updateOverlay() {
         shift = shift === 'Blue' ? 'Red' : 'Blue';
         console.dir(shift);
         overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
+
+        // Change scene in OBS
+        socket.emit('changeScene', `${shift} Overlay`);
       }
 
       radius = ((overlay.maxTime - overlay.time) / overlay.maxTime) * maxRadius;
@@ -301,8 +311,8 @@ function resetRun() {
     let currentOverlay = overlayQueue.shift();
     overlayQueue.unshift({
       'type': 'reset',
-      'time': 500,
-      'maxTime': 500,
+      'time': 600,
+      'maxTime': 600,
       'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
     });
     overlayQueue.unshift(currentOverlay);
@@ -310,8 +320,8 @@ function resetRun() {
     // Reset overlay
     overlayQueue.push({
       'type': 'reset',
-      'time': 500,
-      'maxTime': 500,
+      'time': 600,
+      'maxTime': 600,
       'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
     });
   }
@@ -325,8 +335,8 @@ function startRun() {
     let currentOverlay = overlayQueue.shift();
     overlayQueue.unshift({
       'type': 'start',
-      'time': 500,
-      'maxTime': 500,
+      'time': 600,
+      'maxTime': 600,
       'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
     });
     overlayQueue.unshift(currentOverlay);
@@ -334,8 +344,8 @@ function startRun() {
     // Start overlay
     overlayQueue.push({
       'type': 'start',
-      'time': 500,
-      'maxTime': 500,
+      'time': 600,
+      'maxTime': 600,
       'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
     });
   }
@@ -379,6 +389,8 @@ function connect() {
   var heartbeatInterval = 1000 * 60; //ms between PING's
   var reconnectInterval = 1000 * 3; //ms to wait before reconnect
   var heartbeatHandle;
+
+  socket = io.connect();
 
   // Reset the run when hitting -
   // No longer necessary because we're using LiveSplit WebSocket Server
@@ -607,8 +619,8 @@ function connect() {
         // Channel point reward for shifting layout
         overlayQueue.push({
           'type': 'shift',
-          'time': 500,
-          'maxTime': 500,
+          'time': 600,
+          'maxTime': 600,
           'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
         });
       }

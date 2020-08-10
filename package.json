@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "express": "^4.17.1",
+    "obs-websocket-js": "^4.0.1",
     "socket.io": "^2.3.0"
   },
   "engines": {
