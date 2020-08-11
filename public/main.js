@@ -334,6 +334,13 @@ function resetRun() {
   }
   winRate = `${(sessionWins / sessionAttempts) * 100}%`; // Update winRate
 
+  // Send Fall Guys info to the server
+  socket.emit('updateFGInfo', {
+    'sessionWins': sessionWins,
+    'winStreak': winStreak,
+    'highWinStreak': highWinStreak
+  });
+
   if (overlayQueue.length > 2) {
     // Adjust the overlay queue to prioritize reset
     let currentOverlay = overlayQueue.shift();
