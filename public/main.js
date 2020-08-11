@@ -19,6 +19,8 @@ let running = false;
 let socket;
 let timerState;
 let prevTimerState;
+let run;
+let currentSplit;
 
 // Audio files for luck
 const goodLuckAudio = new Audio('/media/sounds/GoodLuck.mp3');
@@ -38,11 +40,61 @@ const emoteSize = 202; // Facecam emote size in pixels
 const maxRadius = 1080;
 
 // Fall Guys info
+let fallGuys = true;
+let infoFill = 'rgba(48, 48, 48, 0.85)';
 let sessionAttempts = 0;
 let sessionWins = 0;
-let winRate = "";
+let winRate = "0%";
 let winStreak = 0;
 let highWinStreak = 0;
+let eliminations = [0, 0, 0, 0, 0];
+let totalRounds = 0;
+let teamRounds = 0;
+let teamEliminations = 0;
+
+let infoRectW = 277;
+let infoRectH = 130;
+
+const sessionInfoMessages = [
+  {
+    'type': 'Games Played',
+    'message': sessionAttempts,
+    'time': 6000,
+    'maxTime': 6000,
+    'x': 300
+  },
+  {
+    'type': 'Wins',
+    'message': sessionWins,
+    'time': 6000,
+    'maxTime': 6000,
+    'x': 300
+  },
+  {
+    'type': 'Current Streak',
+    'message': winStreak,
+    'time': 6000,
+    'maxTime': 6000,
+    'x': 300
+  },
+  {
+    'type': 'Highest Streak',
+    'message': highWinStreak,
+    'time': 6000,
+    'maxTime': 6000,
+    'x': 300
+  },
+  {
+    'type': 'Win Rate',
+    'message': winRate,
+    'time': 6000,
+    'maxTime': 6000,
+    'x': 300
+  },
+];
+
+let currentInfoIndex = 0;
+let currentInfoMessage = sessionInfoMessages[currentInfoIndex];
 
 // Emote class
 // Emotes are created given a name, image, and size (default of 112)
@@ -122,27 +174,22 @@ function updateDT() {
 
 function updateOverlay() {
   updateDT();
-  
-  // Show Fall Guys info
+  overlayCtx.clearRect(0, 0, 1920, 1080);
 
+  // Draw Fall Guys info box
+  if (fallGuys) {
+    overlayCtx.fillStyle = infoFill;
+    overlayCtx.fillRect(56, 269, infoRectW, infoRectH);
+    overlayCtx.fillStyle = 'rgb(255, 255, 255)';
+    overlayCtx.fillRect(56, 269 + infoRectH, 277, 3);
+  }
 
   // Update overlay if necessary
   if (overlayQueue.length != 0) {
     let overlay = overlayQueue[0];
     let radius = 0;
 
-    overlayCtx.clearRect(0, 0, 1920, 1080);
-    if (overlay.time <= 0) {
-      overlayQueue.shift();
-      if (overlay.type === 'start' || (overlay.type === 'shift' && running)) {
-        overlayCanvas.style.backgroundImage = `url('${overlay.newOverlay.src.substring(overlay.newOverlay.src.indexOf('/media'))}')`;
-        if (overlay.type === 'start') {
-          running = true;
-        }
-      } else {
-        running = false;
-      }
-    } else if (overlay.type === 'start') {
+    if (overlay.type === 'start') {
       // Run has started
       if (overlay.time === overlay.maxTime) {
         // Set the new overlay
@@ -157,6 +204,7 @@ function updateOverlay() {
     } else if (overlay.type === 'reset') {
       // Run has reset
       if (overlay.time === overlay.maxTime) {
+        infoFill = 'rgba(48, 48, 48, 0.85)';
         // Set the new overlay
         overlayCanvas.style.backgroundImage = "url('/media/overlays/GreyOverlay.png')";
         overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
@@ -195,13 +243,88 @@ function updateOverlay() {
         overlayCtx.beginPath();
         overlayCtx.arc(overlayCanvas.width / 2, overlayCanvas.height / 2, radius, 0, Math.PI * 2);
         overlayCtx.clip();
+        overlayCtx.clearRect(0, 0, 1920, 1080);
         overlayCtx.drawImage(overlay.newOverlay, 0, 0);
+        if (fallGuys) {
+          if (overlay.type != 'reset' && shift === 'Blue') {
+            overlayCtx.fillStyle = 'rgba(48, 28, 176, 0.85)';
+          } else if (overlay.type != 'reset' && shift === 'Red') {
+            overlayCtx.fillStyle = 'rgba(176, 28, 28, 0.85)';
+          } else {
+            overlayCtx.fillStyle = 'rgba(48, 48, 48, 0.85)';
+          }
+          // Reset fill is broken. It's switching to grey immediately when it should stay as the color that is being used (and infoFill should switch to grey)
+      
+          // Rect dimensions (W: 277, H: 130)
+          overlayCtx.fillRect(56, 269, 277, 130);
+          overlayCtx.fillStyle = 'rgb(255, 255, 255)';
+          overlayCtx.fillRect(56, 399, 277, 3);
+        }
         overlayCtx.restore();
       }
 
       overlay.time -= dt;
       overlayQueue[0] = overlay;
+
+      if (overlay.time <= 0) {
+        overlayQueue.shift();
+        if (overlay.type === 'start' || (overlay.type === 'shift' && running)) {
+          overlayCanvas.style.backgroundImage = `url('${overlay.newOverlay.src.substring(overlay.newOverlay.src.indexOf('/media'))}')`;
+          infoFill = shift === 'Blue' ? 'rgba(48, 28, 176, 0.85)' : 'rgba(176, 28, 28, 0.85)';
+          if (overlay.type === 'start') {
+            running = true;
+          }
+        } else {
+          infoFill = 'rgba(48, 48, 48, 0.85)';
+          running = false;
+        }
+      }
     }
+  }
+
+  // Draw Fall Guys info text
+  if (fallGuys) {
+    overlayCtx.save();
+    overlayCtx.beginPath();
+    overlayCtx.rect(56, 269, 277, 130);
+    overlayCtx.clip();
+
+    overlayCtx.fillStyle = 'white';
+    overlayCtx.strokeStyle = 'rgb(10, 10, 10)';
+    overlayCtx.font = '26px Arial';
+    let text = 'Session Info'
+    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56, 296);
+    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56, 296);
+
+    // Update position of text
+    if (currentInfoMessage.time >= currentInfoMessage.maxTime - 500) {
+      currentInfoMessage.x = 300 - 300 * Math.abs((currentInfoMessage.time - (currentInfoMessage.maxTime - 500)) / 500 - 1);
+    } else if (currentInfoMessage.time <= 500) {
+      currentInfoMessage.x = 300 * (currentInfoMessage.time / 500) - 300;
+    } else {
+      currentInfoMessage.x = 0;
+    }
+
+    text = currentInfoMessage.type;
+    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 390);
+    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 390);
+
+    overlayCtx.font = '56px Arial';
+    text = currentInfoMessage.message;
+    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 354);
+    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 354);
+
+    currentInfoMessage.time -= dt;
+
+    if (currentInfoMessage.time <= 0) {
+      console.dir('swapping message');
+      currentInfoIndex++;
+      currentInfoIndex = currentInfoIndex >= sessionInfoMessages.length ? 0 : currentInfoIndex;
+      console.dir(currentInfoIndex);
+      currentInfoMessage = sessionInfoMessages[currentInfoIndex];
+      currentInfoMessage.time = currentInfoMessage.maxTime;
+    }
+    overlayCtx.restore();
   }
 
   // Show any current rewards
@@ -313,6 +436,28 @@ function showRewards() {
   }
 }
 
+// Send Fall Guys info to the server
+function updateFG() {
+  socket.emit('updateFGInfo', {
+    'sessionAttempts': sessionAttempts,
+    'sessionWins': sessionWins,
+    'winRate': winRate,
+    'winStreak': winStreak,
+    'highWinStreak': highWinStreak,
+    'eliminations': eliminations,
+    'totalRounds': totalRounds,
+    'teamRounds': teamRounds,
+    'teamEliminations': teamEliminations
+  });
+
+  // Update info messages as well
+  sessionInfoMessages[0].message = sessionAttempts;
+  sessionInfoMessages[1].message = sessionWins;
+  sessionInfoMessages[2].message = winStreak;
+  sessionInfoMessages[3].message = highWinStreak;
+  sessionInfoMessages[4].message = winRate;
+}
+
 // Used when resetting a run
 function resetRun() {
   console.dir('run reset');
@@ -331,15 +476,31 @@ function resetRun() {
     // Reset winstreak and play a sound on a non completed run
     winStreak = 0;
     sound = true;
-  }
-  winRate = `${(sessionWins / sessionAttempts) * 100}%`; // Update winRate
+    totalRounds++;
 
-  // Send Fall Guys info to the server
-  socket.emit('updateFGInfo', {
-    'sessionWins': sessionWins,
-    'winStreak': winStreak,
-    'highWinStreak': highWinStreak
-  });
+    // Track team eliminations
+    if (currentSplit.name.includes('(Team)')) {
+      teamRounds++;
+      teamEliminations++;
+    }
+
+    // Track where we were eliminated
+    if(currentSplit.name.includes('Round 1')) {
+      eliminations[0] = eliminations[0] + 1;
+    } else if(currentSplit.name.includes('Round 2')) {
+      eliminations[1] = eliminations[1] + 1;
+    } else if(currentSplit.name.includes('Round 3')) {
+      eliminations[2] = eliminations[2] + 1;
+    } else if(currentSplit.name.includes('Round 4')) {
+      eliminations[3] = eliminations[3] + 1;
+    } else if(currentSplit.name.includes('Round 5')) {
+      eliminations[4] = eliminations[4] + 1;
+    }
+  }
+
+  winRate = `${(sessionWins / sessionAttempts) * 100}%`; // Update winRate
+  console.dir(winRate);
+  updateFG();
 
   if (overlayQueue.length > 2) {
     // Adjust the overlay queue to prioritize reset
@@ -362,6 +523,9 @@ function resetRun() {
       'sound': sound,
     });
   }
+
+  // Reset livesplit variables
+  currentSplit = '';
 }
 
 // Used when starting a run
@@ -412,11 +576,17 @@ function startSplitsSocket() {
       resetRun();
     } if (action === 'start') {
       // A run has started
+      currentSplit = data.state.run.segments[0];
       startRun();
     } else if (action === 'split') {
       // Runner has split, get split info
-      let split = data.segments[data.currentSplitIndex - 1];
-      console.dir(split);
+      totalRounds++;
+      if (currentSplit.name.includes('(Team)')) {
+        teamRounds++;
+      }
+      currentSplit = data.state.run.segments[data.state.currentSplitIndex];
+    } else if (action === 'skip-split') {
+      currentSplit = data.state.run.segments[data.state.currentSplitIndex];
     }
   }
 

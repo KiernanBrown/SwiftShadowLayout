@@ -25,9 +25,14 @@ let obsSceneNames = [];
 // Fall Guys info
 let sessionAttempts = 0;
 let sessionWins = 0;
-let winRate = "";
+let winRate = "0%";
 let winStreak = 0;
 let highWinStreak = 0;
+let eliminations = [0, 0, 0, 0, 0];
+let totalRounds = 0;
+let teamRounds = 0;
+let teamEliminations = 0;
+const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
 
 client.on('message', onMessageHandler);
@@ -100,9 +105,27 @@ io.on('connection', (sock) => {
 
   // Update Fall Guys info
   socket.on('updateFGInfo', (data) => {
+    sessionAttempts = data.sessionAttempts;
     sessionWins = data.sessionWins;
+    winRate = data.winRate;
     winStreak = data.winStreak;
     highWinStreak = data.highWinStreak;
+    eliminations = data.eliminations;
+    totalRounds = data.totalRounds;
+    teamRounds = data.teamRounds;
+    teamEliminations = data.teamEliminations;
+    let totalEliminations = eliminations.reduce(reducer);
+
+    console.log('');
+    console.log(`Session Attempts: ${sessionAttempts}`);
+    console.log(`Session Wins: ${sessionWins}`);
+    console.log(`Win Rate: ${winRate}`);
+    console.log(`Win Streak: ${winStreak}`);
+    console.log(`Highest Win Streak: ${highWinStreak}`);
+    console.log(`Eliminations: ${eliminations}`);
+    console.log(`Total Rounds: ${totalRounds}`);
+    console.log(`Team Eliminations: ${teamEliminations}`);
+    console.log(`Team Elim Rate: ${(teamEliminations/totalEliminations) * 100}%`);
   });
 });
 
