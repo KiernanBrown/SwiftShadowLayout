@@ -480,11 +480,12 @@ function updateFG() {
   });
 
   // Update info messages as well
-  sessionInfoMessages[0].message = sessionAttempts;
-  sessionInfoMessages[1].message = sessionWins;
-  sessionInfoMessages[2].message = winStreak;
-  sessionInfoMessages[3].message = highWinStreak;
-  sessionInfoMessages[4].message = winRate;
+  sessionInfoMessages[0].message = totalWins;
+  sessionInfoMessages[1].message = sessionAttempts;
+  sessionInfoMessages[2].message = sessionWins;
+  sessionInfoMessages[3].message = winStreak;
+  sessionInfoMessages[4].message = highWinStreak;
+  sessionInfoMessages[5].message = winRate;
 }
 
 // Used when resetting a run
