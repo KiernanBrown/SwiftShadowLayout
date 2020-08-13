@@ -26,7 +26,7 @@ let obsSceneNames = [];
 let totalWins = 40;
 let sessionAttempts = 0;
 let sessionWins = 0;
-let winRate = "0%";
+let winRate = "0.00%";
 let winStreak = 0;
 let highWinStreak = 0;
 let eliminations = [0, 0, 0, 0, 0, 0];
@@ -37,7 +37,7 @@ const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
 let insulted = false;
 let insults = [
-  'Seriously, no wins? None at all?',
+  'Seriously, no wins this stream? None at all?',
   'Really, how is he this bad?',
   "Can't even finish an FF7R run and now this? smh",
   "I bet he doesn't even understand how seesaws work",
@@ -47,11 +47,9 @@ let insults = [
   "Why even have a !wins command if it'll always be at 0 LULW",
   'Sorry everyone in chat has to see this disgraceful gameplay PepeHands',
   "I'm sure even Kairi would be more useful on a team than him",
-  'I thought this was a !wins command, not a view count command...',
   'SuccShadow coming out in full force today eh SandbagHop'
 ];
 let usedInsults = [];
-
 
 client.on('message', onMessageHandler);
 client.on('connected', onConnectedHandler);
@@ -67,7 +65,7 @@ function onMessageHandler (target, context, msg, self) {
 
   // If the command is known, let's execute it
   if (commandName === '!wins') {
-    client.say(target, `Swift has won ${sessionWins} games this session!`);
+    client.say(target, `Swift has won ${sessionWins} games this session! Swift has a total win count of ${totalWins}!`);
 
     // Chatbot gonna get mean
     let insultChance = Math.floor(Math.random() * 2);

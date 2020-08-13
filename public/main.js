@@ -45,7 +45,7 @@ let infoFill = 'rgba(48, 48, 48, 0.85)';
 let totalWins = 40;
 let sessionAttempts = 0;
 let sessionWins = 0;
-let winRate = "0%";
+let winRate = "0.00%";
 let winStreak = 0;
 let highWinStreak = 0;
 let eliminations = [0, 0, 0, 0, 0, 0];
@@ -58,6 +58,15 @@ let infoRectH = 130;
 
 const sessionInfoMessages = [
   {
+    'header': 'Lifetime Stats',
+    'type': 'Total Wins',
+    'message': totalWins,
+    'time': 6000,
+    'maxTime': 6000,
+    'x': 300
+  },
+  {
+    'header': 'Session Stats',
     'type': 'Games Played',
     'message': sessionAttempts,
     'time': 6000,
@@ -65,6 +74,7 @@ const sessionInfoMessages = [
     'x': 300
   },
   {
+    'header': 'Session Stats',
     'type': 'Wins',
     'message': sessionWins,
     'time': 6000,
@@ -72,6 +82,7 @@ const sessionInfoMessages = [
     'x': 300
   },
   {
+    'header': 'Session Stats',
     'type': 'Current Streak',
     'message': winStreak,
     'time': 6000,
@@ -79,6 +90,7 @@ const sessionInfoMessages = [
     'x': 300
   },
   {
+    'header': 'Session Stats',
     'type': 'Highest Streak',
     'message': highWinStreak,
     'time': 6000,
@@ -86,6 +98,7 @@ const sessionInfoMessages = [
     'x': 300
   },
   {
+    'header': 'Session Stats',
     'type': 'Win Rate',
     'message': winRate,
     'time': 6000,
@@ -96,6 +109,8 @@ const sessionInfoMessages = [
 
 let currentInfoIndex = 0;
 let currentInfoMessage = sessionInfoMessages[currentInfoIndex];
+let nextInfoMessage = sessionInfoMessages[currentInfoIndex] + 1;
+let previousInfoMessage = sessionInfoMessages[sessionInfoMessages.length - 1];
 
 // Emote class
 // Emotes are created given a name, image, and size (default of 112)
@@ -293,9 +308,6 @@ function updateOverlay() {
     overlayCtx.fillStyle = 'white';
     overlayCtx.strokeStyle = 'rgb(10, 10, 10)';
     overlayCtx.font = '26px Arial';
-    let text = 'Session Info'
-    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56, 296);
-    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56, 296);
 
     // Update position of text
     if (currentInfoMessage.time >= currentInfoMessage.maxTime - 500) {
@@ -304,6 +316,16 @@ function updateOverlay() {
       currentInfoMessage.x = 300 * (currentInfoMessage.time / 500) - 300;
     } else {
       currentInfoMessage.x = 0;
+    }
+
+    let text = currentInfoMessage.header;
+
+    if ((previousInfoMessage.header != currentInfoMessage.header && currentInfoMessage.x >= 0) || (currentInfoMessage.header != nextInfoMessage.header && currentInfoMessage.x <= 0)) {
+      overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 296);
+      overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 296);
+    } else {
+      overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56, 296);
+      overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56, 296);
     }
 
     text = currentInfoMessage.type;
@@ -318,11 +340,16 @@ function updateOverlay() {
     currentInfoMessage.time -= dt;
 
     if (currentInfoMessage.time <= 0) {
-      console.dir('swapping message');
+      console.dir('Swapping info message');
       currentInfoIndex++;
       currentInfoIndex = currentInfoIndex >= sessionInfoMessages.length ? 0 : currentInfoIndex;
-      console.dir(currentInfoIndex);
+      let nextIndex = currentInfoIndex + 1;
+      nextIndex = nextIndex >= sessionInfoMessages.length ? 0 : nextIndex;
+
+      // Change Info Message
+      previousInfoMessage = currentInfoMessage;
       currentInfoMessage = sessionInfoMessages[currentInfoIndex];
+      nextInfoMessage = sessionInfoMessages[nextIndex];
       currentInfoMessage.time = currentInfoMessage.maxTime;
     }
     overlayCtx.restore();
