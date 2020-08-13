@@ -42,13 +42,14 @@ const maxRadius = 1080;
 // Fall Guys info
 let fallGuys = true;
 let infoFill = 'rgba(48, 48, 48, 0.85)';
+let totalWins = 40;
 let sessionAttempts = 0;
 let sessionWins = 0;
 let winRate = "0%";
 let winStreak = 0;
 let highWinStreak = 0;
-let eliminations = [0, 0, 0, 0, 0];
-let totalRounds = 0;
+let eliminations = [0, 0, 0, 0, 0, 0];
+let sessionRounds = 0;
 let teamRounds = 0;
 let teamEliminations = 0;
 
@@ -210,7 +211,7 @@ function updateOverlay() {
         overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
 
         // Play a sound effect
-        if(overlay.sound) {
+        if (overlay.sound) {
           resetSounds[Math.floor(Math.random() * resetSounds.length)].play();
         }
 
@@ -254,7 +255,7 @@ function updateOverlay() {
             overlayCtx.fillStyle = 'rgba(48, 48, 48, 0.85)';
           }
           // Reset fill is broken. It's switching to grey immediately when it should stay as the color that is being used (and infoFill should switch to grey)
-      
+
           // Rect dimensions (W: 277, H: 130)
           overlayCtx.fillRect(56, 269, 277, 130);
           overlayCtx.fillStyle = 'rgb(255, 255, 255)';
@@ -439,13 +440,14 @@ function showRewards() {
 // Send Fall Guys info to the server
 function updateFG() {
   socket.emit('updateFGInfo', {
+    'totalWins': totalWins,
     'sessionAttempts': sessionAttempts,
     'sessionWins': sessionWins,
     'winRate': winRate,
     'winStreak': winStreak,
     'highWinStreak': highWinStreak,
     'eliminations': eliminations,
-    'totalRounds': totalRounds,
+    'sessionRounds': sessionRounds,
     'teamRounds': teamRounds,
     'teamEliminations': teamEliminations
   });
@@ -466,8 +468,9 @@ function resetRun() {
 
   // Only play a reset sound if the run has not been finished
   let sound;
-  if(prevTimerState === 'Ended') {
+  if (prevTimerState === 'Ended') {
     // Add to wins and winStreak on a completed run
+    totalWins++;
     sessionWins++;
     winStreak++;
     highWinStreak = winStreak > highWinStreak ? winStreak : highWinStreak;
@@ -476,7 +479,7 @@ function resetRun() {
     // Reset winstreak and play a sound on a non completed run
     winStreak = 0;
     sound = true;
-    totalRounds++;
+    sessionRounds++;
 
     // Track team eliminations
     if (currentSplit.name.includes('(Team)')) {
@@ -485,20 +488,22 @@ function resetRun() {
     }
 
     // Track where we were eliminated
-    if(currentSplit.name.includes('Round 1')) {
+    if (currentSplit.name.includes('Round 1')) {
       eliminations[0] = eliminations[0] + 1;
-    } else if(currentSplit.name.includes('Round 2')) {
+    } else if (currentSplit.name.includes('Round 2')) {
       eliminations[1] = eliminations[1] + 1;
-    } else if(currentSplit.name.includes('Round 3')) {
+    } else if (currentSplit.name.includes('Round 3')) {
       eliminations[2] = eliminations[2] + 1;
-    } else if(currentSplit.name.includes('Round 4')) {
+    } else if (currentSplit.name.includes('Round 4')) {
       eliminations[3] = eliminations[3] + 1;
-    } else if(currentSplit.name.includes('Round 5')) {
+    } else if (currentSplit.name.includes('Round 5')) {
       eliminations[4] = eliminations[4] + 1;
+    } else if (currentSplit.name.includes('Final Round')) {
+      eliminations[5] = eliminations[5] + 1;
     }
   }
 
-  winRate = `${(sessionWins / sessionAttempts) * 100}%`; // Update winRate
+  winRate = `${((sessionWins / sessionAttempts) * 100).toFixed(2)}%`; // Update winRate
   console.dir(winRate);
   updateFG();
 
@@ -574,13 +579,14 @@ function startSplitsSocket() {
     if (action === 'reset') {
       // A run has reset
       resetRun();
-    } if (action === 'start') {
+    }
+    if (action === 'start') {
       // A run has started
       currentSplit = data.state.run.segments[0];
       startRun();
     } else if (action === 'split') {
       // Runner has split, get split info
-      totalRounds++;
+      sessionRounds++;
       if (currentSplit.name.includes('(Team)')) {
         teamRounds++;
       }
@@ -665,7 +671,7 @@ function connect() {
   emotes.push(new Emote('OMEGALUL', 'https://cdn.betterttv.net/emote/583089f4737a8e61abb0186b/3x'));
   emotes.push(new Emote('monkaS', 'https://cdn.betterttv.net/emote/56e9f494fff3cc5c35e5287e/3x'));
   emotes.push(new Emote('monkaW', 'https://cdn.betterttv.net/emote/59ca6551b27c823d5b1fd872/3x'));
-  
+
   // GIF Emotes
   emotes.push(new Emote('YuukoGasm', 'https://cdn.betterttv.net/emote/5d9803411df66f68c80c7a2d/3x'));
   emotes.push(new Emote('RainbowPls', 'https://cdn.betterttv.net/emote/5b35cae2f3a33e2b6f0058ef/3x'));
@@ -804,18 +810,18 @@ function connect() {
         // Channel point reward for facecam emote
         // Split the message on spaces
         let userMsg = redemption.user_input.toLowerCase().split(' ');
-      
+
         let selectedEmote;
         if (userMsg.length > 0) {
           // Get the first supported emote in the message
           for (let i = 0; i < userMsg.length; i++) {
             let emoteName = userMsg[i].replace(/\s/g, '');
             console.dir(emoteName);
-            
+
             selectedEmote = emotes.find(e => {
               return e.name.toLowerCase() === emoteName
             });
-            
+
             if (selectedEmote) {
               break;
             }
@@ -849,7 +855,7 @@ function connect() {
     clearInterval(heartbeatHandle);
     setTimeout(connect, reconnectInterval);
   };
-  
+
   startSplitsSocket();
 
 }

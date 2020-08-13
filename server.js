@@ -23,16 +23,34 @@ let obsScenes = [];
 let obsSceneNames = [];
 
 // Fall Guys info
+let totalWins = 40;
 let sessionAttempts = 0;
 let sessionWins = 0;
 let winRate = "0%";
 let winStreak = 0;
 let highWinStreak = 0;
-let eliminations = [0, 0, 0, 0, 0];
-let totalRounds = 0;
+let eliminations = [0, 0, 0, 0, 0, 0];
+let sessionRounds = 0;
 let teamRounds = 0;
 let teamEliminations = 0;
 const reducer = (accumulator, currentValue) => accumulator + currentValue;
+
+let insulted = false;
+let insults = [
+  'Seriously, no wins? None at all?',
+  'Really, how is he this bad?',
+  "Can't even finish an FF7R run and now this? smh",
+  "I bet he doesn't even understand how seesaws work",
+  'Sadge fart of Fall Guys',
+  'Swift is such a 2Head',
+  'Imagine calling yourself the Hexagod and choking this hard Pepega',
+  "Why even have a !wins command if it'll always be at 0 LULW",
+  'Sorry everyone in chat has to see this disgraceful gameplay PepeHands',
+  "I'm sure even Kairi would be more useful on a team than him",
+  'I thought this was a !wins command, not a view count command...',
+  'SuccShadow coming out in full force today eh SandbagHop'
+];
+let usedInsults = [];
 
 
 client.on('message', onMessageHandler);
@@ -49,12 +67,32 @@ function onMessageHandler (target, context, msg, self) {
 
   // If the command is known, let's execute it
   if (commandName === '!wins') {
-    client.say(target, `I have won ${sessionWins} games this session!`);
+    client.say(target, `Swift has won ${sessionWins} games this session!`);
+
+    // Chatbot gonna get mean
+    let insultChance = Math.floor(Math.random() * 2);
+    if (sessionWins === 0 && !insulted && insultChance === 0) {
+      let numInsults = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < numInsults; i++) {
+        let insult;
+        do {
+          insult = insults[Math.floor(Math.random() * insults.length)];
+        } while(usedInsults.includes(insult));
+        setTimeout(() => {
+          client.say(target, insult);
+        }, 3500 * (i + 1));
+      }
+      insulted = true;
+      setTimeout(() => {
+        usedInsults = [];
+        insulted = false;
+      }, 240000);
+    }
   } else if (commandName === '!streak') {
     if (winStreak === highWinStreak) {
-      client.say(target, `I am currently on a win streak of ${winStreak} games! This is my highest streak of this session!`);
+      client.say(target, `Swift is currently on a win streak of ${winStreak} games! This is the highest streak of this session!`);
     } else {
-      client.say(target, `I am currently on a win streak of ${winStreak} games! My highest win streak of this session has been ${highWinStreak} games!`);
+      client.say(target, `Swift is currently on a win streak of ${winStreak} games! The highest win streak of this session has been ${highWinStreak} games!`);
     }
   }
 }
@@ -105,25 +143,27 @@ io.on('connection', (sock) => {
 
   // Update Fall Guys info
   socket.on('updateFGInfo', (data) => {
+    totalWins = data.totalWins;
     sessionAttempts = data.sessionAttempts;
     sessionWins = data.sessionWins;
     winRate = data.winRate;
     winStreak = data.winStreak;
     highWinStreak = data.highWinStreak;
     eliminations = data.eliminations;
-    totalRounds = data.totalRounds;
+    sessionRounds = data.sessionRounds;
     teamRounds = data.teamRounds;
     teamEliminations = data.teamEliminations;
     let totalEliminations = eliminations.reduce(reducer);
 
     console.log('');
+    console.log(`Total Wins: ${totalWins}`);
     console.log(`Session Attempts: ${sessionAttempts}`);
     console.log(`Session Wins: ${sessionWins}`);
     console.log(`Win Rate: ${winRate}`);
     console.log(`Win Streak: ${winStreak}`);
     console.log(`Highest Win Streak: ${highWinStreak}`);
     console.log(`Eliminations: ${eliminations}`);
-    console.log(`Total Rounds: ${totalRounds}`);
+    console.log(`Session Rounds: ${sessionRounds}`);
     console.log(`Team Eliminations: ${teamEliminations}`);
     console.log(`Team Elim Rate: ${(teamEliminations/totalEliminations) * 100}%`);
   });
