@@ -5,6 +5,7 @@ const io = require('socket.io')(server);
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 const OBSWebSocket = require('obs-websocket-js');
 const tmi = require('tmi.js');
+const fs = require('fs');
 
 const opts = {
   identity: {
@@ -33,6 +34,7 @@ let eliminations = [0, 0, 0, 0, 0, 0];
 let sessionRounds = 0;
 let teamRounds = 0;
 let teamEliminations = 0;
+let finalStats = [];
 const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
 let insulted = false;
@@ -151,7 +153,9 @@ io.on('connection', (sock) => {
     sessionRounds = data.sessionRounds;
     teamRounds = data.teamRounds;
     teamEliminations = data.teamEliminations;
+    finalStats = data.finalStats;
     let totalEliminations = eliminations.reduce(reducer);
+    data.totalEliminations = totalEliminations;
 
     console.log('');
     console.log(`Total Wins: ${totalWins}`);
@@ -164,6 +168,7 @@ io.on('connection', (sock) => {
     console.log(`Session Rounds: ${sessionRounds}`);
     console.log(`Team Eliminations: ${teamEliminations}`);
     console.log(`Team Elim Rate: ${(teamEliminations/totalEliminations) * 100}%`);
+    console.log(finalStats);
   });
 });
 

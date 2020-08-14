@@ -42,16 +42,18 @@ const maxRadius = 1080;
 // Fall Guys info
 let fallGuys = true;
 let infoFill = 'rgba(48, 48, 48, 0.85)';
-let totalWins = 40;
+let totalWins = 44;
 let sessionAttempts = 0;
 let sessionWins = 0;
 let winRate = "0.00%";
 let winStreak = 0;
 let highWinStreak = 0;
-let eliminations = [0, 0, 0, 0, 0, 0];
+let eliminations = [0, 0, 0, 0, 0];
 let sessionRounds = 0;
 let teamRounds = 0;
 let teamEliminations = 0;
+let finalStats = [];
+let finalLevels = ['Hex-a-gone', 'Fall Mountain', 'Royal Fumble', 'Jump Showdown'];
 
 let infoRectW = 277;
 let infoRectH = 130;
@@ -476,7 +478,8 @@ function updateFG() {
     'eliminations': eliminations,
     'sessionRounds': sessionRounds,
     'teamRounds': teamRounds,
-    'teamEliminations': teamEliminations
+    'teamEliminations': teamEliminations,
+    'finalStats': finalStats
   });
 
   // Update info messages as well
@@ -488,6 +491,15 @@ function updateFG() {
   sessionInfoMessages[5].message = winRate;
 }
 
+function addWin(level) {
+  totalWins++;
+  sessionWins++;
+  winStreak++;
+  highWinStreak = winStreak > highWinStreak ? winStreak : highWinStreak;
+  let finalLevelInfo = finalStats.find(e => { return e.name === level });
+  finalLevelInfo.wins++;
+}
+
 // Used when resetting a run
 function resetRun() {
   console.dir('run reset');
@@ -497,11 +509,7 @@ function resetRun() {
   // Only play a reset sound if the run has not been finished
   let sound;
   if (prevTimerState === 'Ended') {
-    // Add to wins and winStreak on a completed run
-    totalWins++;
-    sessionWins++;
-    winStreak++;
-    highWinStreak = winStreak > highWinStreak ? winStreak : highWinStreak;
+    // Don't play a sound on completed run
     sound = false;
   } else {
     // Reset winstreak and play a sound on a non completed run
@@ -527,7 +535,14 @@ function resetRun() {
     } else if (currentSplit.name.includes('Round 5')) {
       eliminations[4] = eliminations[4] + 1;
     } else if (currentSplit.name.includes('Final Round')) {
-      eliminations[5] = eliminations[5] + 1;
+      for(let i = 0; i < finalLevels.length; i++) {
+        let level = finalLevels[i];
+        if(currentSplit.name.includes(level)) {
+          let finalLevelInfo = finalStats.find(e => { return e.name === level });
+          finalLevelInfo.attempts++;
+          break;
+        }
+      }
     }
   }
 
@@ -586,6 +601,20 @@ function startRun() {
   }
 }
 
+// Get stat information from server
+function getStats() {
+
+  // Init final stats
+  finalLevels.forEach(level => {
+    finalStats.push({
+      'name': level,
+      'attempts': 0,
+      'wins': 0
+    });
+  });
+}
+
+
 // Open a WebSocket that works with LiveSplit
 function startSplitsSocket() {
   splitsSocket = new WebSocket('ws://192.168.1.152:15721');
@@ -614,9 +643,21 @@ function startSplitsSocket() {
       startRun();
     } else if (action === 'split') {
       // Runner has split, get split info
-      sessionRounds++;
-      if (currentSplit.name.includes('(Team)')) {
-        teamRounds++;
+      if (!currentSplit.name.includes('Win')) {
+        sessionRounds++;
+        if (currentSplit.name.includes('(Team)')) {
+          teamRounds++;
+        } else if (currentSplit.name.includes('Final Round')) {
+          for(let i = 0; i < finalLevels.length; i++) {
+            let level = finalLevels[i];
+            if(currentSplit.name.includes(level)) {
+              let finalLevelInfo = finalStats.find(e => { return e.name === level });
+              finalLevelInfo.attempts++;
+              addWin(level);
+              break;
+            }
+          }
+        }
       }
       currentSplit = data.state.run.segments[data.state.currentSplitIndex];
     } else if (action === 'skip-split') {
@@ -636,6 +677,9 @@ function connect() {
   var heartbeatHandle;
 
   socket = io.connect();
+
+  // Get stats from server (not functional yet)
+  getStats();
 
   // Populate reset sounds
   let noWay = new Audio('/media/sounds/NoWay.wav');
