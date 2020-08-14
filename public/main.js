@@ -483,14 +483,10 @@ function updateFG() {
   });
 
   // Update info messages as well
-  sessionInfoMessages[0].message = totalWins;
-  sessionInfoMessages[1].message = sessionAttempts;
-  sessionInfoMessages[2].message = sessionWins;
-  sessionInfoMessages[3].message = winStreak;
-  sessionInfoMessages[4].message = highWinStreak;
-  sessionInfoMessages[5].message = winRate;
+  updateInfo();
 }
 
+// Add win for a given level
 function addWin(level) {
   totalWins++;
   sessionWins++;
@@ -603,17 +599,38 @@ function startRun() {
 
 // Get stat information from server
 function getStats() {
-
-  // Init final stats
-  finalLevels.forEach(level => {
-    finalStats.push({
-      'name': level,
-      'attempts': 0,
-      'wins': 0
-    });
+  // Get the stats json from the server
+  // This allows us to keep session info until I want to manually reset it
+  // We can also store more information as a result (Weekly statistics/etc.)
+  fetch('/stats')
+  .then(res => res.json())
+  .then(stats => {
+    setStats(stats);
   });
 }
 
+const setStats = (stats) => {
+  totalWins = stats.totalWins;
+  sessionAttempts = stats.sessionAttempts;
+  sessionWins = stats.sessionWins;
+  winRate = stats.winRate;
+  winStreak = stats.winStreak;
+  highWinStreak = stats.highWinStreak;
+  eliminations = stats.eliminations;
+  sessionRounds = stats.sessionRounds;
+  teamRounds = stats.teamRounds;
+  teamEliminations = stats.teamEliminations;
+  finalStats = stats.finalStats;
+};
+
+const updateInfo = () => {
+  sessionInfoMessages[0].message = totalWins;
+  sessionInfoMessages[1].message = sessionAttempts;
+  sessionInfoMessages[2].message = sessionWins;
+  sessionInfoMessages[3].message = winStreak;
+  sessionInfoMessages[4].message = highWinStreak;
+  sessionInfoMessages[5].message = winRate;
+};
 
 // Open a WebSocket that works with LiveSplit
 function startSplitsSocket() {
@@ -676,7 +693,18 @@ function connect() {
   var reconnectInterval = 1000 * 3; //ms to wait before reconnect
   var heartbeatHandle;
 
+  // Reset session by hitting r
+  window.addEventListener("keypress", (event) => {
+    if (event.key === 'r') {
+      socket.emit('resetSession');
+    }
+  });
+
   socket = io.connect();
+  socket.on('resetSession', (stats) => {
+    setStats(stats);
+    updateInfo();
+  });
 
   // Get stats from server (not functional yet)
   getStats();

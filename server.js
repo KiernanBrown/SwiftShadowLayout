@@ -24,17 +24,20 @@ let obsScenes = [];
 let obsSceneNames = [];
 
 // Fall Guys info
-let totalWins = 40;
-let sessionAttempts = 0;
-let sessionWins = 0;
-let winRate = "0.00%";
-let winStreak = 0;
-let highWinStreak = 0;
-let eliminations = [0, 0, 0, 0, 0, 0];
-let sessionRounds = 0;
-let teamRounds = 0;
-let teamEliminations = 0;
-let finalStats = [];
+let finalLevels = ['Hex-a-gone', 'Fall Mountain', 'Royal Fumble', 'Jump Showdown'];
+let stats = {
+  'totalWins' : 0,
+  'sessionAttempts' : 0,
+  'sessionWins' : 0,
+  'winRate': "0.00%",
+  'winStreak' : 0,
+  'highWinStreak' : 0,
+  'eliminations' : [0, 0, 0, 0, 0, 0],
+  'sessionRounds' : 0,
+  'teamRounds' : 0,
+  'teamEliminations' : 0,
+  'finalStats' : []
+};
 const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
 let insulted = false;
@@ -52,6 +55,20 @@ let insults = [
   'SuccShadow coming out in full force today eh SandbagHop'
 ];
 let usedInsults = [];
+
+// Load stats from JSON if it exists
+let loadedStats = fs.readFileSync('public/stats.json');
+if (loadedStats) {
+  stats = JSON.parse(loadedStats);
+} else {
+  finalLevels.forEach(level => {
+    stats.finalStats.push({
+      'name': level,
+      'attempts': 0,
+      'wins': 0
+    });
+  });
+}
 
 client.on('message', onMessageHandler);
 client.on('connected', onConnectedHandler);
@@ -143,32 +160,25 @@ io.on('connection', (sock) => {
 
   // Update Fall Guys info
   socket.on('updateFGInfo', (data) => {
-    totalWins = data.totalWins;
-    sessionAttempts = data.sessionAttempts;
-    sessionWins = data.sessionWins;
-    winRate = data.winRate;
-    winStreak = data.winStreak;
-    highWinStreak = data.highWinStreak;
-    eliminations = data.eliminations;
-    sessionRounds = data.sessionRounds;
-    teamRounds = data.teamRounds;
-    teamEliminations = data.teamEliminations;
-    finalStats = data.finalStats;
-    let totalEliminations = eliminations.reduce(reducer);
-    data.totalEliminations = totalEliminations;
+    stats = data;
+
+    fs.writeFileSync('public/stats.json', JSON.stringify(stats));
 
     console.log('');
-    console.log(`Total Wins: ${totalWins}`);
-    console.log(`Session Attempts: ${sessionAttempts}`);
-    console.log(`Session Wins: ${sessionWins}`);
-    console.log(`Win Rate: ${winRate}`);
-    console.log(`Win Streak: ${winStreak}`);
-    console.log(`Highest Win Streak: ${highWinStreak}`);
-    console.log(`Eliminations: ${eliminations}`);
-    console.log(`Session Rounds: ${sessionRounds}`);
-    console.log(`Team Eliminations: ${teamEliminations}`);
-    console.log(`Team Elim Rate: ${(teamEliminations/totalEliminations) * 100}%`);
-    console.log(finalStats);
+    console.log(`Total Wins: ${stats.totalWins}`);
+    console.log(`Session Attempts: ${stats.sessionAttempts}`);
+    console.log(`Session Wins: ${stats.sessionWins}`);
+    console.log(`Win Rate: ${stats.winRate}`);
+    console.log(`Win Streak: ${stats.winStreak}`);
+    console.log(`Highest Win Streak: ${stats.highWinStreak}`);
+    console.log(`Eliminations: ${stats.eliminations}`);
+    console.log(`Session Rounds: ${stats.sessionRounds}`);
+    console.log(stats.finalStats);
+  });
+
+  socket.on('resetSession', () => {
+    resetSession();
+    socket.emit('resetSession', stats);
   });
 });
 
@@ -177,10 +187,36 @@ io.on('connection', (sock) => {
 app.use(express.static("public"));
 
 // https://expressjs.com/en/starter/basic-routing.html
-app.get("/", (request, response) => {
+app.get('/', (request, response) => {
   response.sendFile(__dirname + "/views/index.html");
+});
+
+app.get('/stats', (req, res) => {
+  res.json(stats);
 });
 
 server.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
+
+function resetSession() {
+  stats.sessionAttempts = 0;
+  stats.sessionWins = 0;
+  stats.winRate = "0.00%";
+  stats.winStreak = 0;
+  stats.highWinStreak = 0;
+  stats.eliminations = 0;
+  stats.sessionRounds = 0;
+  stats.teamRounds = 0;
+  stats.teamEliminations = 0;
+  stats.finalStats = [];
+  finalLevels.forEach(level => {
+    stats.finalStats.push({
+      'name': level,
+      'attempts': 0,
+      'wins': 0
+    });
+  });
+
+  fs.writeFileSync('public/stats.json', JSON.stringify(stats));
+}
