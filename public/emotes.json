@@ -105,6 +105,10 @@
     "YuukoKappa":{
       "img":"https://cdn.betterttv.net/emote/5d8677d4d2458468c1f47677/3x"
     },
+    "YuukoSmile":{
+      "img":"https://cdn.frankerfacez.com/emoticon/389864/4",
+      "size":128
+    },
     "TimesaveForNextRun":{
       "img":"https://cdn.frankerfacez.com/emoticon/462840/4",
       "size":128
@@ -131,12 +135,19 @@
     "peepoLove":{
       "img":"https://cdn.betterttv.net/emote/5a5e0e8d80f53146a54a516b/3x"
     },
+    "peepoSnackies":{
+      "img":"https://cdn.betterttv.net/emote/5d028c5878cd681c8727d98e/3x"
+    },
     "pigO":{
       "img":"https://cdn.frankerfacez.com/emoticon/386230/4",
       "size":128
     },
     "AYAYA":{
       "img":"https://cdn.betterttv.net/emote/58493695987aab42df852e0f/3x"
+    },
+    "AYAYAY":{
+      "img":"https://cdn.frankerfacez.com/emoticon/250475/4",
+      "size":128
     },
     "cfAYAYA":{
       "img":"https://cdn.frankerfacez.com/emoticon/420824/4",
@@ -194,6 +205,160 @@
     },
     "KEKWait":{
       "img":"https://cdn.betterttv.net/emote/5e486af4d736527d5cd2fed6/3x"
+    },
+    "PauseChamp":{
+      "img":"https://cdn.betterttv.net/emote/5cd6b08cf1dac14a18c4b61f/3x"
+    },
+    "PagChomp":{
+      "img":"https://cdn.frankerfacez.com/emoticon/61496/4",
+      "size":128
+    },
+    "Pog":{
+      "img":"https://cdn.frankerfacez.com/emoticon/210748/2",
+      "size":56
+    },
+    "PogT":{
+      "img":"https://cdn.frankerfacez.com/emoticon/419526/4",
+      "size":128
+    },
+    "PogU":{
+      "img":"https://cdn.betterttv.net/emote/5e4e7a1f08b4447d56a92967/3x"
+    },
+    "PogYou":{
+      "img":"https://cdn.betterttv.net/emote/5e534c2f1512c640530f7e3f/3x"
+    },
+    "WeirdChamp":{
+      "img":"https://cdn.betterttv.net/emote/5d9198fbd2458468c1f4adb7/3x"
+    },
+    "5Head":{
+      "img":"https://cdn.betterttv.net/emote/5d6096974932b21d9c332904/3x"
+    },
+    "2Head":{
+      "img":"https://cdn.frankerfacez.com/emoticon/294078/4",
+      "size":124
+    },
+    "4Weird":{
+      "img":"https://cdn.frankerfacez.com/emoticon/308193/4",
+      "size":128
+    },
+    "HYPERS":{
+      "img":"https://cdn.betterttv.net/emote/5980af4e3a1ac5330e89dc76/3x"
+    },
+    "FeelsOkayMan":{
+      "img":"https://cdn.betterttv.net/emote/5803757f3d506fea7ee35267/3x"
+    },
+    "sinisterPatrick":{
+      "img":"https://cdn.betterttv.net/emote/5ac55f2306679e79a3e7841d/3x"
+    },
+    "Thonk":{
+      "img":"https://cdn.betterttv.net/emote/585231dd58af204561cd6036/3x"
+    },
+    "RIP":{
+      "img":"https://cdn.betterttv.net/emote/54fcdfdc01abde735115deae/3x"
+    },
+    "SmileW":{
+      "img":"https://cdn.frankerfacez.com/emoticon/179088/4",
+      "size":128
+    },
+    "NamineEnter":{
+      "img":"https://cdn.frankerfacez.com/emoticon/483409/4"
+    },
+    "AxelExit":{
+      "img":"https://cdn.frankerfacez.com/emoticon/483410/4"
+    },
+    "AoiPout":{
+      "img":"https://cdn.frankerfacez.com/emoticon/93972/4",
+      "size":128
+    },
+    "BadSpeedrun":{
+      "img":"https://cdn.frankerfacez.com/emoticon/65228/4",
+      "size":128
+    },
+    "BigFlan119":{
+      "img":"https://cdn.frankerfacez.com/emoticon/382097/4"
+    },
+    "ChiakiHyped":{
+      "img":"https://cdn.frankerfacez.com/emoticon/123277/4",
+      "size":128
+    },
+    "ChiakiSad":{
+      "img":"https://cdn.frankerfacez.com/emoticon/123101/4",
+      "size":128
+    },
+    "ChiakiSleeping":{
+      "img":"/media/emotes/ChiakiSleeping.png",
+      "size":128
+    },
+    "ChiakiSleepy":{
+      "img":"/media/emotes/ChiakiSleepy.png",
+      "size":128
+    },
+    "ChiakiThink":{
+      "img":"https://cdn.frankerfacez.com/emoticon/123114/4",
+      "size":128
+    },
+    "HakaseNyan":{
+      "img":"https://cdn.frankerfacez.com/emoticon/184542/4",
+      "size":128
+    },
+    "HakaseYay":{
+      "img":"https://cdn.frankerfacez.com/emoticon/130440/4",
+      "size":128
+    },
+    "JordanOpieOP":{
+      "img":"https://cdn.frankerfacez.com/emoticon/357422/4",
+      "size":128
+    },
+    "MakiDsappoint":{
+      "img":"https://cdn.frankerfacez.com/emoticon/216306/4",
+      "size":128
+    },
+    "MioRage":{
+      "img":"https://cdn.frankerfacez.com/emoticon/119736/4",
+      "size":128
+    },
+    "NanoNyan":{
+      "img":"https://cdn.frankerfacez.com/emoticon/184543/4",
+      "size":128
+    },
+    "OOF":{
+      "img":"https://cdn.frankerfacez.com/emoticon/261564/4",
+      "size":101
+    },
+    "REEEEE":{
+      "img":"https://cdn.frankerfacez.com/emoticon/235284/4",
+      "size":128
+    },
+    "SoraShock":{
+      "img":"https://cdn.frankerfacez.com/emoticon/253192/4",
+      "size":128
+    },
+    "TohruSmug":{
+      "img":"https://cdn.frankerfacez.com/emoticon/166994/4",
+      "size":128
+    },
+    "ZoomEyes":{
+      "img":"https://cdn.frankerfacez.com/emoticon/203715/4"
+    },
+    "etchyO":{
+      "img":"https://cdn.frankerfacez.com/emoticon/383852/4",
+      "size":128
+    },
+    "etchyWhiff":{
+      "img":"https://cdn.frankerfacez.com/emoticon/448985/4",
+      "size":128
+    },
+    "levi5Head":{
+      "img":"https://cdn.frankerfacez.com/emoticon/404915/4",
+      "size":128
+    },
+    "monkaSS":{
+      "img":"https://cdn.frankerfacez.com/emoticon/220709/4",
+      "size":128
+    },
+    "valKEKW":{
+      "img":"https://cdn.frankerfacez.com/emoticon/426748/4",
+      "size":128
     }
   },
   "gifEmotes":{
@@ -215,8 +380,42 @@
     "PeepoPooPoo":{
       "img":"https://cdn.betterttv.net/emote/5c3427a55752683d16e409d1/3x"
     },
+    "peepoBox":{
+      "img":"https://cdn.betterttv.net/emote/5b9a383b6c095b77aed377e1/3x"
+    },
+    "peepoSHAKE":{
+      "img":"https://cdn.betterttv.net/emote/5b83938ca69b8634bf059473/3x"
+    },
+    "peepoGiggles":{
+      "img":"https://cdn.betterttv.net/emote/5e0bcf69031ec77bab473476/3x"
+    },
+    "peepoArrive":{
+      "img":"https://cdn.betterttv.net/emote/5d922afbc0652668c9e52ead/3x"
+    },
+    "peepoLeave":{
+      "img":"https://cdn.betterttv.net/emote/5d324913ff6ed36801311fd2/3x"
+    },
+    "peepoComfy":{
+      "img":"https://cdn.betterttv.net/emote/5dbc173f27360247dd64e4ae/3x",
+      "size":100
+    },
+    "peepoHey":{
+      "img":"https://cdn.betterttv.net/emote/5c0e1a3c6c146e7be4ff5c0c/3x"
+    },
+    "peepoSmash":{
+      "img":"https://cdn.betterttv.net/emote/5c72084d41600b0832ab0931/3x"
+    },
+    "peepoClap":{
+      "img":"https://cdn.betterttv.net/emote/5d38aaa592fc550c2d5996b8/3x"
+    },
+    "peepoChat":{
+      "img":"https://cdn.betterttv.net/emote/5e1bd08688e62a5f14dc6316/3x"
+    },
     "peepoGoolysses":{
       "img":"https://cdn.betterttv.net/emote/5f246d9bfe85fb4472d1c339/3x"
+    },
+    "ppPoof":{
+      "img":"https://cdn.betterttv.net/emote/5afe99e57724ae2706b27355/3x"
     },
     "monkaSTEER":{
       "img":"/media/emotes/monkaSTEER.gif",
@@ -228,23 +427,23 @@
     "blobDance":{
       "img":"https://cdn.betterttv.net/emote/5ada077451d4120ea3918426/3x"
     },
-    "peepoSHAKE":{
-      "img":"https://cdn.betterttv.net/emote/5b83938ca69b8634bf059473/3x"
-    },
-    "peepoGiggles":{
-      "img":"https://cdn.betterttv.net/emote/5e0bcf69031ec77bab473476/3x"
-    },
     "Monka":{
       "img":"https://cdn.betterttv.net/emote/5c37cc6743a23a61c2449c73/3x"
     },
     "monkaTOS":{
       "img":"https://cdn.betterttv.net/emote/5a7fd054b694db72eac253f4/3x"
     },
+    "PepeJAM":{
+      "img":"https://cdn.betterttv.net/emote/5b77ac3af7bddc567b1d5fb2/3x"
+    },
     "PepeJAMJAM":{
       "img":"https://cdn.betterttv.net/emote/5c36fba2c6888455faa2e29f/3x"
     },
     "pepeMeltdown":{
       "img":"https://cdn.betterttv.net/emote/5ba84271c9f0f66a9efc1c86/3x"
+    },
+    "pepeD":{
+      "img":"https://cdn.betterttv.net/emote/5b1740221c5a6065a7bad4b5/3x"
     },
     "AYAYABASSS":{
       "img":"https://cdn.betterttv.net/emote/5bbecbb0605b7273d160f6f6/3x"
@@ -273,6 +472,42 @@
     },
     "KirbDance":{
       "img":"https://cdn.betterttv.net/emote/5b9011eea2c5266ff2b8fde5/3x"
+    },
+    "Clap":{
+      "img":"https://cdn.betterttv.net/emote/55b6f480e66682f576dd94f5/3x"
+    },
+    "CrabPls":{
+      "img":"https://cdn.betterttv.net/emote/5c2a4ddda402f16774559abe/3x"
+    },
+    "clubPls":{
+      "img":"https://cdn.betterttv.net/emote/5723e5f2ece3853a0adb03d2/3x"
+    },
+    "pugPls":{
+      "img":"https://cdn.betterttv.net/emote/5de88ccef6e95977b50e6eb1/3x"
+    },
+    "aquaCry":{
+      "img":"https://cdn.betterttv.net/emote/5d18c96b22d39f4857cbdf37/3x"
+    },
+    "AquaTriggered":{
+      "img":"https://cdn.betterttv.net/emote/5c5246919af3bb75410e8aa8/3x"
+    },
+    "DABSEM":{
+      "img":"https://cdn.betterttv.net/emote/5c47ca857bb83567b77c70ea/3x"
+    },
+    "RareChar":{
+      "img":"https://cdn.betterttv.net/emote/562b9101a6646e202bcc5447/3x"
+    },
+    "YAPPP":{
+      "img":"https://cdn.betterttv.net/emote/5e0abc799e2cd00d968d72b7/3x"
+    },
+    "FeelsOhWait":{
+      "img":"https://cdn.betterttv.net/emote/55ab96ce9406e5482db53424/3x"
+    },
+    "FallCrown":{
+      "img":"https://cdn.betterttv.net/emote/5f338c704510395d822b5c67/3x"
+    },
+    "PETTHEFALLGUY":{
+      "img":"https://cdn.betterttv.net/emote/5f31767f8abf185d76c677b3/3x"
     }
   }
 }

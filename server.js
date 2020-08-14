@@ -55,6 +55,11 @@ let insults = [
   'SuccShadow coming out in full force today eh SandbagHop'
 ];
 let usedInsults = [];
+let emotes = {};
+let loadedEmotes = fs.readFileSync('public/emotes.json');
+if (loadedEmotes) {
+  emotes = JSON.parse(loadedEmotes);
+} 
 
 // Load stats from JSON if it exists
 let loadedStats = fs.readFileSync('public/stats.json');
@@ -193,6 +198,10 @@ app.get('/', (request, response) => {
 
 app.get('/stats', (req, res) => {
   res.json(stats);
+});
+
+app.get('/emotes', (req, res) => {
+  res.json(emotes);
 });
 
 server.listen(port, () => {
