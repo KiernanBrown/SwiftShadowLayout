@@ -40,7 +40,7 @@ const emoteSize = 202; // Facecam emote size in pixels
 const maxRadius = 1080;
 
 // Fall Guys info
-let fallGuys = true;
+let fallGuys = false;
 let infoFill = 'rgba(48, 48, 48, 0.85)';
 let totalWins = 0;
 let sessionAttempts = 0;
@@ -505,42 +505,46 @@ function resetRun() {
     sound = false;
   } else {
     // Reset winstreak and play a sound on a non completed run
-    winStreak = 0;
     sound = true;
-    sessionRounds++;
-
-    // Track team eliminations
-    if (currentSplit.name.includes('(Team)')) {
-      teamRounds++;
-      teamEliminations++;
-    }
-
-    // Track where we were eliminated
-    if (currentSplit.name.includes('Round 1')) {
-      eliminations[0] = eliminations[0] + 1;
-    } else if (currentSplit.name.includes('Round 2')) {
-      eliminations[1] = eliminations[1] + 1;
-    } else if (currentSplit.name.includes('Round 3')) {
-      eliminations[2] = eliminations[2] + 1;
-    } else if (currentSplit.name.includes('Round 4')) {
-      eliminations[3] = eliminations[3] + 1;
-    } else if (currentSplit.name.includes('Round 5')) {
-      eliminations[4] = eliminations[4] + 1;
-    } else if (currentSplit.name.includes('Final Round')) {
-      for(let i = 0; i < finalLevels.length; i++) {
-        let level = finalLevels[i];
-        if(currentSplit.name.includes(level)) {
-          let finalLevelInfo = finalStats.find(e => { return e.name === level });
-          finalLevelInfo.attempts++;
-          break;
+    if (fallGuys) {
+      winStreak = 0;
+      sessionRounds++;
+  
+      // Track team eliminations
+      if (currentSplit.name.includes('(Team)')) {
+        teamRounds++;
+        teamEliminations++;
+      }
+  
+      // Track where we were eliminated
+      if (currentSplit.name.includes('Round 1')) {
+        eliminations[0] = eliminations[0] + 1;
+      } else if (currentSplit.name.includes('Round 2')) {
+        eliminations[1] = eliminations[1] + 1;
+      } else if (currentSplit.name.includes('Round 3')) {
+        eliminations[2] = eliminations[2] + 1;
+      } else if (currentSplit.name.includes('Round 4')) {
+        eliminations[3] = eliminations[3] + 1;
+      } else if (currentSplit.name.includes('Round 5')) {
+        eliminations[4] = eliminations[4] + 1;
+      } else if (currentSplit.name.includes('Final Round')) {
+        for(let i = 0; i < finalLevels.length; i++) {
+          let level = finalLevels[i];
+          if(currentSplit.name.includes(level)) {
+            let finalLevelInfo = finalStats.find(e => { return e.name === level });
+            finalLevelInfo.attempts++;
+            break;
+          }
         }
       }
     }
   }
 
-  winRate = `${((sessionWins / sessionAttempts) * 100).toFixed(2)}%`; // Update winRate
-  console.dir(winRate);
-  updateFG();
+  if (fallGuys) {
+    winRate = `${((sessionWins / sessionAttempts) * 100).toFixed(2)}%`; // Update winRate
+    console.dir(winRate);
+    updateFG();
+  }
 
   if (overlayQueue.length > 2) {
     // Adjust the overlay queue to prioritize reset
@@ -659,7 +663,7 @@ const updateInfo = () => {
 
 // Open a WebSocket that works with LiveSplit
 function startSplitsSocket() {
-  splitsSocket = new WebSocket('ws://192.168.1.152:15721');
+  splitsSocket = new WebSocket('ws://localhost:15721');
   splitsSocket.onopen = (event) => {
     console.dir('Connected to LiveSplit');
     console.dir(event);

@@ -26,17 +26,17 @@ let obsSceneNames = [];
 // Fall Guys info
 let finalLevels = ['Hex-a-gone', 'Fall Mountain', 'Royal Fumble', 'Jump Showdown'];
 let stats = {
-  'totalWins' : 0,
-  'sessionAttempts' : 0,
-  'sessionWins' : 0,
+  'totalWins': 0,
+  'sessionAttempts': 0,
+  'sessionWins': 0,
   'winRate': "0.00%",
-  'winStreak' : 0,
-  'highWinStreak' : 0,
-  'eliminations' : [0, 0, 0, 0, 0, 0],
-  'sessionRounds' : 0,
-  'teamRounds' : 0,
-  'teamEliminations' : 0,
-  'finalStats' : []
+  'winStreak': 0,
+  'highWinStreak': 0,
+  'eliminations': [0, 0, 0, 0, 0],
+  'sessionRounds': 0,
+  'teamRounds': 0,
+  'teamEliminations': 0,
+  'finalStats': []
 };
 const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
@@ -59,7 +59,7 @@ let emotes = {};
 let loadedEmotes = fs.readFileSync('public/emotes.json');
 if (loadedEmotes) {
   emotes = JSON.parse(loadedEmotes);
-} 
+}
 
 // Load stats from JSON if it exists
 let loadedStats = fs.readFileSync('public/stats.json');
@@ -81,25 +81,27 @@ client.on('connected', onConnectedHandler);
 client.connect();
 
 // Called every time a message comes in
-function onMessageHandler (target, context, msg, self) {
-  if (self) { return; } // Ignore messages from the bot
+function onMessageHandler(target, context, msg, self) {
+  if (self) {
+    return;
+  } // Ignore messages from the bot
 
   // Remove whitespace from chat message
   const commandName = msg.trim();
 
   // If the command is known, let's execute it
   if (commandName === '!wins') {
-    client.say(target, `Swift has won ${sessionWins} games this session! Swift has a total win count of ${totalWins}!`);
+    client.say(target, `Swift has won ${stats.sessionWins} games this session! Swift has a total win count of ${stats.totalWins}!`);
 
     // Chatbot gonna get mean
     let insultChance = Math.floor(Math.random() * 2);
-    if (sessionWins === 0 && !insulted && insultChance === 0) {
+    if (stats.sessionWins === 0 && !insulted && insultChance === 0) {
       let numInsults = Math.floor(Math.random() * 3) + 1;
       for (let i = 0; i < numInsults; i++) {
         let insult;
         do {
           insult = insults[Math.floor(Math.random() * insults.length)];
-        } while(usedInsults.includes(insult));
+        } while (usedInsults.includes(insult));
         setTimeout(() => {
           client.say(target, insult);
         }, 3500 * (i + 1));
@@ -111,40 +113,40 @@ function onMessageHandler (target, context, msg, self) {
       }, 240000);
     }
   } else if (commandName === '!streak') {
-    if (winStreak === highWinStreak) {
-      client.say(target, `Swift is currently on a win streak of ${winStreak} games! This is the highest streak of this session!`);
+    if (stats.winStreak === stats.highWinStreak) {
+      client.say(target, `Swift is currently on a win streak of ${stats.winStreak} games! This is the highest streak of this session!`);
     } else {
-      client.say(target, `Swift is currently on a win streak of ${winStreak} games! The highest win streak of this session has been ${highWinStreak} games!`);
+      client.say(target, `Swift is currently on a win streak of ${stats.winStreak} games! The highest win streak of this session has been ${stats.highWinStreak} games!`);
     }
   }
 }
 
 // Called every time the bot connects to Twitch chat
-function onConnectedHandler (addr, port) {
+function onConnectedHandler(addr, port) {
   console.log(`* Connected to ${addr}:${port}`);
 }
 
 obs.connect({
-  address: 'localhost:4444',
-  password: 'CleverPassword'
-})
-.then(() => {
-  console.log('Connected to OBS');
+    address: 'localhost:4444',
+    password: 'CleverPassword'
+  })
+  .then(() => {
+    console.log('Connected to OBS');
 
-  return obs.send('GetSceneList');
-})
-.then(data => {
-  console.log(`${data.scenes.length} Available Scenes!`);
-  obsScenes = data.scenes;
+    return obs.send('GetSceneList');
+  })
+  .then(data => {
+    console.log(`${data.scenes.length} Available Scenes!`);
+    obsScenes = data.scenes;
 
-  obsScenes.forEach(scene => {
-    obsSceneNames.push(scene.name);
+    obsScenes.forEach(scene => {
+      obsSceneNames.push(scene.name);
+    });
+  })
+  .catch(err => {
+    // Promise convention dicates you have a catch on every chain.
+    console.log(err);
   });
-})
-.catch(err => { 
-  // Promise convention dicates you have a catch on every chain.
-  console.log(err);
-});
 
 obs.on('error', err => {
   console.error('socket error:', err);
@@ -214,7 +216,7 @@ function resetSession() {
   stats.winRate = "0.00%";
   stats.winStreak = 0;
   stats.highWinStreak = 0;
-  stats.eliminations = 0;
+  stats.eliminations = [0, 0, 0, 0, 0];
   stats.sessionRounds = 0;
   stats.teamRounds = 0;
   stats.teamEliminations = 0;

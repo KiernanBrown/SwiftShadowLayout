@@ -411,6 +411,9 @@
     "peepoChat":{
       "img":"https://cdn.betterttv.net/emote/5e1bd08688e62a5f14dc6316/3x"
     },
+    "peepoShy":{
+      "img":"https://cdn.betterttv.net/emote/5eaa12a074046462f768344b/3x"
+    },
     "peepoGoolysses":{
       "img":"https://cdn.betterttv.net/emote/5f246d9bfe85fb4472d1c339/3x"
     },
@@ -508,6 +511,9 @@
     },
     "PETTHEFALLGUY":{
       "img":"https://cdn.betterttv.net/emote/5f31767f8abf185d76c677b3/3x"
+    },
+    "WeSmart":{
+      "img":"https://cdn.betterttv.net/emote/5a311dd16405a95e4b0d4967/3x"
     }
   }
 }
