@@ -21,6 +21,7 @@ let timerState;
 let prevTimerState;
 let run;
 let currentSplit;
+let speedrun = true;
 
 // Audio files for luck
 const goodLuckAudio = new Audio('/media/sounds/GoodLuck.mp3');
@@ -35,7 +36,7 @@ let camRewardQueue = [];
 let lucks = [];
 let shift = 'Blue';
 let emotes = [];
-const emoteSize = 202; // Facecam emote size in pixels
+const emoteSize = 256; // Facecam emote size in pixels
 
 const maxRadius = 1080;
 
@@ -445,9 +446,9 @@ function showRewards() {
       camEmote.src = reward.emote.url;
       camEmote.style.width = `${emoteSize}px`;
       camEmote.style.height = `${emoteSize}px`;
-      let x = 56 + (277 - emoteSize) / 2;
+      let x = 21 + (349 - emoteSize) / 2;
       camEmote.style.left = `${x}px`;
-      camEmote.style.top = "42px";
+      camEmote.style.top = "14px";
     }
 
     reward.time -= dt;
@@ -463,7 +464,7 @@ function showRewards() {
 }
 
 // Send Fall Guys info to the server
-function updateFG() {
+const updateFG = () => {
   socket.emit('updateFGInfo', {
     'totalWins': totalWins,
     'sessionAttempts': sessionAttempts,
@@ -483,7 +484,7 @@ function updateFG() {
 }
 
 // Add win for a given level
-function addWin(level) {
+const addWin = (level) => {
   totalWins++;
   sessionWins++;
   winStreak++;
@@ -493,7 +494,7 @@ function addWin(level) {
 }
 
 // Used when resetting a run
-function resetRun() {
+const resetRun = () => {
   console.dir('run reset');
   // Clear out all users who have given luck
   lucks = [];
@@ -661,6 +662,34 @@ const updateInfo = () => {
   sessionInfoMessages[5].message = winRate;
 };
 
+const toggleFallGuys = () => {
+  fallGuys = !fallGuys;
+};
+
+const toggleSpeedrun = () => {
+  speedrun = !speedrun;
+  console.dir(speedrun);
+
+  if (!speedrun) {
+    running = true;
+    overlayQueue.push({
+      'type': 'start',
+      'time': 600,
+      'maxTime': 600,
+      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+    });
+  } else {
+    running = false;
+    overlayQueue.push({
+      'type': 'reset',
+      'time': 600,
+      'maxTime': 600,
+      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+      'sound': false,
+    });
+  }
+}
+
 // Open a WebSocket that works with LiveSplit
 function startSplitsSocket() {
   splitsSocket = new WebSocket('ws://localhost:15721');
@@ -726,6 +755,10 @@ function connect() {
   window.addEventListener("keypress", (event) => {
     if (event.key === 'r') {
       socket.emit('resetSession');
+    } else if (event.key === 'f') {
+      toggleFallGuys();
+    } else if (event.key === 's') {
+      toggleSpeedrun();
     }
   });
 

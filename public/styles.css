@@ -9,14 +9,14 @@
 
 #gameCanvas {
   position: absolute;
-  left: 359px;
-  top: 42px;
+  left: 391px;
+  top: 14px;
 }
 
 #camCanvas {
   position: absolute;
-  left: 56px;
-  top: 42px;
+  left: 21px;
+  top: 14px;
 }
 
 #camEmote {
@@ -26,9 +26,9 @@
 
 #camBlack {
   position: absolute;
-  left: 56px;
-  top: 42px;
-  width: 277px;
-  height: 202px;
+  left: 21px;
+  top: 14px;
+  width: 349px;
+  height: 256px;
   visibility: hidden;
 }

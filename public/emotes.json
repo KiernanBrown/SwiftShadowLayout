@@ -1,5 +1,17 @@
 {
   "emotes":{
+    "swifts7Hug":{
+      "img":"/media/emotes/swifts7Hug.png",
+      "size":1000
+    },
+    "swifts7Bully":{
+      "img":"/media/emotes/swifts7Bully.png",
+      "size":1000
+    },
+    "swifts7Lurk":{
+      "img":"/media/emotes/swifts7Lurk.png",
+      "size":1000
+    },
     "swifts7Bless":{
       "img":"/media/emotes/SwiftShadow_AerithBless.png",
       "size":1000

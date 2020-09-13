@@ -6,6 +6,7 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 const OBSWebSocket = require('obs-websocket-js');
 const tmi = require('tmi.js');
 const fs = require('fs');
+let fallGuys = false;
 
 const opts = {
   identity: {
@@ -90,7 +91,7 @@ function onMessageHandler(target, context, msg, self) {
   const commandName = msg.trim();
 
   // If the command is known, let's execute it
-  if (commandName === '!wins') {
+  if (commandName === '!wins' && fallGuys) {
     client.say(target, `Swift has won ${stats.sessionWins} games this session! Swift has a total win count of ${stats.totalWins}!`);
 
     // Chatbot gonna get mean
@@ -112,7 +113,7 @@ function onMessageHandler(target, context, msg, self) {
         insulted = false;
       }, 240000);
     }
-  } else if (commandName === '!streak') {
+  } else if (commandName === '!streak' && fallGuys) {
     if (stats.winStreak === stats.highWinStreak) {
       client.say(target, `Swift is currently on a win streak of ${stats.winStreak} games! This is the highest streak of this session!`);
     } else {
