@@ -7,6 +7,7 @@ const OBSWebSocket = require('obs-websocket-js');
 const tmi = require('tmi.js');
 const fs = require('fs');
 let fallGuys = false;
+let song = {};
 
 const opts = {
   identity: {
@@ -88,7 +89,7 @@ function onMessageHandler(target, context, msg, self) {
   } // Ignore messages from the bot
 
   // Remove whitespace from chat message
-  const commandName = msg.trim();
+  const commandName = msg.trim().toLowerCase();
 
   // If the command is known, let's execute it
   if (commandName === '!wins' && fallGuys) {
@@ -119,6 +120,14 @@ function onMessageHandler(target, context, msg, self) {
     } else {
       client.say(target, `Swift is currently on a win streak of ${stats.winStreak} games! The highest win streak of this session has been ${stats.highWinStreak} games!`);
     }
+  } else if (commandName === '!song') {
+    if (song.name && song.artist) {
+      client.say(target, `The current song is ${song.name} by ${song.artist}`);
+    } else if (song.name) {
+      client.say(target, `The current song is ${song.name}`);
+    } else {
+      client.say(target, 'No song is currently playing!');
+    }
   }
 }
 
@@ -126,6 +135,19 @@ function onMessageHandler(target, context, msg, self) {
 function onConnectedHandler(addr, port) {
   console.log(`* Connected to ${addr}:${port}`);
 }
+
+const updateSong = () => {
+  let songText = fs.readFileSync('public/Snip/Snip.txt', 'utf8').split('-$-');
+  let newSong = songText.length > 1 ? {
+    'name': songText[0].trim(),
+    'artist': songText[1].trim()
+  } : {};
+
+  if (newSong.name != song.name || newSong.artist != song.artist) {
+    song = newSong;
+    console.log('changed song');
+  }
+};
 
 obs.connect({
     address: 'localhost:4444',
@@ -210,6 +232,12 @@ app.get('/emotes', (req, res) => {
 server.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
+
+// Check for song updates every 5 seconds
+updateSong();
+setInterval(() => {
+  updateSong();
+}, (5000));
 
 function resetSession() {
   stats.sessionAttempts = 0;
