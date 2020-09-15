@@ -56,8 +56,11 @@ let teamEliminations = 0;
 let finalStats = [];
 let finalLevels = ['Hex-a-gone', 'Fall Mountain', 'Royal Fumble', 'Jump Showdown'];
 
-let infoRectW = 277;
+let infoRectX = 21;
+let infoRectY = 299;
+let infoRectW = 349;
 let infoRectH = 130;
+let infoRectOff = infoRectW + 80;
 
 const sessionInfoMessages = [
   {
@@ -66,7 +69,7 @@ const sessionInfoMessages = [
     'message': totalWins,
     'time': 6000,
     'maxTime': 6000,
-    'x': 300
+    'x': infoRectOff
   },
   {
     'header': 'Session Stats',
@@ -74,7 +77,7 @@ const sessionInfoMessages = [
     'message': sessionAttempts,
     'time': 6000,
     'maxTime': 6000,
-    'x': 300
+    'x': infoRectOff
   },
   {
     'header': 'Session Stats',
@@ -82,7 +85,7 @@ const sessionInfoMessages = [
     'message': sessionWins,
     'time': 6000,
     'maxTime': 6000,
-    'x': 300
+    'x': infoRectOff
   },
   {
     'header': 'Session Stats',
@@ -90,7 +93,7 @@ const sessionInfoMessages = [
     'message': winStreak,
     'time': 6000,
     'maxTime': 6000,
-    'x': 300
+    'x': infoRectOff
   },
   {
     'header': 'Session Stats',
@@ -98,7 +101,7 @@ const sessionInfoMessages = [
     'message': highWinStreak,
     'time': 6000,
     'maxTime': 6000,
-    'x': 300
+    'x': infoRectOff
   },
   {
     'header': 'Session Stats',
@@ -106,7 +109,7 @@ const sessionInfoMessages = [
     'message': winRate,
     'time': 6000,
     'maxTime': 6000,
-    'x': 300
+    'x': infoRectOff
   },
 ];
 
@@ -194,9 +197,9 @@ function updateOverlay() {
   // Draw Fall Guys info box
   if (fallGuys) {
     overlayCtx.fillStyle = infoFill;
-    overlayCtx.fillRect(56, 269, infoRectW, infoRectH);
+    overlayCtx.fillRect(infoRectX, infoRectY, infoRectW, infoRectH);
     overlayCtx.fillStyle = 'rgb(255, 255, 255)';
-    overlayCtx.fillRect(56, 269 + infoRectH, 277, 3);
+    overlayCtx.fillRect(infoRectX, infoRectY + infoRectH, infoRectW, 3);
   }
 
   // Update overlay if necessary
@@ -270,10 +273,10 @@ function updateOverlay() {
           }
           // Reset fill is broken. It's switching to grey immediately when it should stay as the color that is being used (and infoFill should switch to grey)
 
-          // Rect dimensions (W: 277, H: 130)
-          overlayCtx.fillRect(56, 269, 277, 130);
+          // Draw info rect
+          overlayCtx.fillRect(infoRectX, infoRectY, infoRectW, infoRectH);
           overlayCtx.fillStyle = 'rgb(255, 255, 255)';
-          overlayCtx.fillRect(56, 399, 277, 3);
+          overlayCtx.fillRect(infoRectX, infoRectY + infoRectH, infoRectW, 3);
         }
         overlayCtx.restore();
       }
@@ -301,7 +304,7 @@ function updateOverlay() {
   if (fallGuys) {
     overlayCtx.save();
     overlayCtx.beginPath();
-    overlayCtx.rect(56, 269, 277, 130);
+    overlayCtx.rect(infoRectX, infoRectY, infoRectW, infoRectH);
     overlayCtx.clip();
 
     overlayCtx.fillStyle = 'white';
@@ -310,9 +313,9 @@ function updateOverlay() {
 
     // Update position of text
     if (currentInfoMessage.time >= currentInfoMessage.maxTime - 500) {
-      currentInfoMessage.x = 300 - 300 * Math.abs((currentInfoMessage.time - (currentInfoMessage.maxTime - 500)) / 500 - 1);
+      currentInfoMessage.x = infoRectOff - infoRectOff * Math.abs((currentInfoMessage.time - (currentInfoMessage.maxTime - 500)) / 500 - 1);
     } else if (currentInfoMessage.time <= 500) {
-      currentInfoMessage.x = 300 * (currentInfoMessage.time / 500) - 300;
+      currentInfoMessage.x = infoRectOff * (currentInfoMessage.time / 500) - infoRectOff;
     } else {
       currentInfoMessage.x = 0;
     }
@@ -320,21 +323,21 @@ function updateOverlay() {
     let text = currentInfoMessage.header;
 
     if ((previousInfoMessage.header != currentInfoMessage.header && currentInfoMessage.x >= 0) || (currentInfoMessage.header != nextInfoMessage.header && currentInfoMessage.x <= 0)) {
-      overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 296);
-      overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 296);
+      overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 27);
+      overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 27);
     } else {
-      overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56, 296);
-      overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56, 296);
+      overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX, infoRectY + 27);
+      overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX, infoRectY + 27);
     }
 
     text = currentInfoMessage.type;
-    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 390);
-    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 390);
+    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 121);
+    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 121);
 
     overlayCtx.font = '56px Arial';
     text = currentInfoMessage.message;
-    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 354);
-    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + 56 + currentInfoMessage.x, 354);
+    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 85);
+    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 85);
 
     currentInfoMessage.time -= dt;
 
