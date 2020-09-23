@@ -19,9 +19,9 @@ Snip is being used to get the current song that is being played through spotify.
   * Chat members can replace my facecam with a supported emote of thier choice.
   * Chat members can redshift/blueshift my layout which will toggle the overlay color from red to blue.
 * Overlay changes colors based on if a run is in progress or not. This changes both the image color on the webpage and also the current scene in OBS.
-* Chatbot commands such as !wins and !streak for Fall Guys streams and !song for when a Spotify playlist is going
+* Chatbot commands such as !wins and !streak for Fall Guys streams and !song for when a Spotify playlist is going.
+* Roll The Dice channel point reward that rolls a d20 on the layout and gives viewers a chance at different rewards.
 
 ### Planned Features
 * Support more emotes for the facecam emote reward. Look into a way of getting an emote URL just providing the name of an emote (I haven't found anything on this front yet).
-* Chat members will be able to modify the color of my layout in some way.
-* Overlay color changes when golding a split.
+* Overlay color changes when golding a split or has other interesting interactions with livesplit (I have a very cool idea for this but it would take a lot of time and money for commissions. Maybe at the start of the new year?).

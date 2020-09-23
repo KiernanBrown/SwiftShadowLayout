@@ -144,8 +144,6 @@ function onMessageHandler(target, context, msg, self) {
     } else {
       client.say(target, `Sorry ${context['display-name']}, you don't have any free dice rolls to use! You can earn some from the Roll The Dice channel point reward if you're lucky!`);
     }
-
-
   }
 }
 

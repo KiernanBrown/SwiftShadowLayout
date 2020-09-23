@@ -53,6 +53,7 @@ const nat1Audio = new Audio('/media/sounds/LuckHasBetrayedYou.wav');
 const nat20Audio = new Audio('/media/sounds/ItsMoreFun.wav');
 const tooBadAudio = new Audio('/media/sounds/TooBad.wav');
 const impressiveAudio = new Audio('/media/sounds/Impressive.wav');
+const continuesAudio = new Audio('/media/sounds/TheGameContinues.wav');
 
 
 // Fall Guys info
@@ -278,6 +279,8 @@ function updateOverlay() {
 
       if (dice.roll === 1) {
         nat1Audio.play();
+      } else if (dice.roll === 7) {
+        continuesAudio.play()
       } else if (dice.roll === 19) {
         impressiveAudio.play();
       } else if (dice.roll === 20) {
