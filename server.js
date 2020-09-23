@@ -145,7 +145,18 @@ const updateSong = () => {
 
   if (newSong.name != song.name || newSong.artist != song.artist) {
     song = newSong;
-    console.log('changed song');
+  }
+};
+
+const diceRoll = (data) => {
+  if (data.roll === 1) {
+    client.say('#swiftshadow', `Sorry ${data.user}, a 1 means you're getting timed out for a day! If you have any last words, get them in before Swift or a mod times you out.`);
+  } else if (data.roll === 19) {
+    client.say('#swiftshadow', `Congrats ${data.user}, a 19 gets you a gifted sub!`);
+  } else if (data.roll === 20) {
+    client.say('#swiftshadow', `Incredible ${data.user}!!! Use !d20 to see what rewards you can pick from as a result of your amazing luck!`);
+  } else {
+    client.say('#swiftshadow', `Too bad ${data.user}... Maybe you'll have better luck next time!`);
   }
 };
 
@@ -186,6 +197,10 @@ io.on('connection', (sock) => {
         'scene-name': scene
       });
     }
+  });
+
+  socket.on('diceRoll', (data) => {
+    diceRoll(data);
   });
 
   // Update Fall Guys info

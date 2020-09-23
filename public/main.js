@@ -40,6 +40,21 @@ const emoteSize = 256; // Facecam emote size in pixels
 
 const maxRadius = 1080;
 
+// Dice rolling
+let dieX = 566;
+let dieY = 862;
+let dieW = 172;
+let dieH = 198;
+let diceRewardQueue = [];
+let greyDie;
+
+const diceStartAudio = new Audio('/media/sounds/LetTheGameBegin.wav');
+const nat1Audio = new Audio('/media/sounds/LuckHasBetrayedYou.wav');
+const nat20Audio = new Audio('/media/sounds/ItsMoreFun.wav');
+const tooBadAudio = new Audio('/media/sounds/TooBad.wav');
+const impressiveAudio = new Audio('/media/sounds/Impressive.wav');
+
+
 // Fall Guys info
 let fallGuys = false;
 let infoFill = 'rgba(48, 48, 48, 0.85)';
@@ -202,6 +217,87 @@ function updateOverlay() {
     overlayCtx.fillRect(infoRectX, infoRectY + infoRectH, infoRectW, 3);
   }
 
+  // Draw D20
+  if (diceRewardQueue.length != 0) {
+    let dice = diceRewardQueue[0];
+    if (dice.time === dice.maxTime) {
+      diceStartAudio.play();
+      dice.rolls = 0;
+      dice.roll = Math.floor(Math.random() * 20) + 1;
+      dice.nextRoll = Math.floor(Math.random() * 6) + 22 + (4.38 * dice.rolls);
+      dice.timePast = 0;
+    }
+    dice.time -= dt;
+    dice.timePast += dt;
+
+    if (!dice.stopped && dice.timePast >= dice.nextRoll) {
+      dice.timePast -= dice.nextRoll;
+      dice.roll = Math.floor(Math.random() * 20) + 1;
+      if (dice.time >= 5500) {
+        dice.nextRoll = Math.floor(Math.random() * 6) + 16 + (2.88 * dice.rolls);
+      } else {
+        dice.nextRoll = Math.floor(Math.random() * 6) + 42 + (5.88 * dice.rolls);
+      }
+
+      dice.rolls++;
+    }
+
+    // Draw die
+    let opacity = 1.0;
+    if (dice.time >= dice.maxTime - 500) {
+      // Fade in
+      opacity = Math.abs((dice.time - (dice.maxTime - 500)) / 500 - 1);
+      if (opacity >= 1.0) opacity = 1.0;
+    } else if (dice.time <= 500) {
+      // Fade out
+      opacity = dice.time / 500;
+      if (opacity <= 0) opacity = 0;
+    }
+
+    overlayCtx.save();
+    overlayCtx.fillStyle = 'rgb(255, 255, 255)';
+    overlayCtx.font = '32px Arial';
+    overlayCtx.globalAlpha = opacity;
+    overlayCtx.drawImage(greyDie, dieX, dieY);
+    let textX = dieW / 2 - (overlayCtx.measureText(dice.roll).width / 2) + dieX;
+    let textY = dieH / 2 + 8 + dieY;
+    console.dir(overlayCtx.measureText(dice.roll));
+    overlayCtx.fillText(dice.roll, textX, textY);
+    overlayCtx.lineWidth = 0.6;
+    if (dice.stopped) {
+      overlayCtx.strokeStyle = 'rgb(173, 150, 47)';
+    } else {
+      overlayCtx.strokeStyle = 'rgb(155, 155, 155)';
+    }
+    overlayCtx.strokeText(dice.roll, textX, textY);
+    overlayCtx.restore();
+
+    diceRewardQueue[0] = dice;
+
+    if (dice.time <= 3000 && !dice.stopped) {
+      dice.stopped = true;
+
+      if (dice.roll === 1) {
+        nat1Audio.play();
+      } else if (dice.roll === 19) {
+        impressiveAudio.play();
+      } else if (dice.roll === 20) {
+        nat20Audio.play();
+      } else {
+        tooBadAudio.play();
+      }
+
+      socket.emit('diceRoll', {
+        'roll': dice.roll, 
+        'user': dice.user
+      });
+    }
+
+    if (dice.time <= 0) {
+      diceRewardQueue.shift();
+    }
+  }
+
   // Update overlay if necessary
   if (overlayQueue.length != 0) {
     let overlay = overlayQueue[0];
@@ -277,6 +373,39 @@ function updateOverlay() {
           overlayCtx.fillRect(infoRectX, infoRectY, infoRectW, infoRectH);
           overlayCtx.fillStyle = 'rgb(255, 255, 255)';
           overlayCtx.fillRect(infoRectX, infoRectY + infoRectH, infoRectW, 3);
+        }
+
+        if (diceRewardQueue.length != 0) {
+          // Draw die
+          let dice = diceRewardQueue[0];
+          let opacity = 1.0;
+          if (dice.time >= dice.maxTime - 500) {
+            // Fade in
+            opacity = Math.abs((dice.time - (dice.maxTime - 500)) / 500 - 1);
+            if (opacity >= 1.0) opacity = 1.0;
+          } else if (dice.time <= 500) {
+            // Fade out
+            opacity = dice.time / 500;
+            if (opacity <= 0) opacity = 0;
+          }
+
+          overlayCtx.save();
+          overlayCtx.fillStyle = 'rgb(255, 255, 255)';
+          overlayCtx.font = '32px Arial';
+          overlayCtx.globalAlpha = opacity;
+          overlayCtx.drawImage(greyDie, dieX, dieY);
+          let textX = dieW / 2 - (overlayCtx.measureText(dice.roll).width / 2) + dieX;
+          let textY = dieH / 2 + 8 + dieY;
+          console.dir(overlayCtx.measureText(dice.roll));
+          overlayCtx.fillText(dice.roll, textX, textY);
+          overlayCtx.lineWidth = 0.6;
+          if (dice.stopped) {
+            overlayCtx.strokeStyle = 'rgb(173, 150, 47)';
+          } else {
+            overlayCtx.strokeStyle = 'rgb(155, 155, 155)';
+          }
+          overlayCtx.strokeText(dice.roll, textX, textY);
+          overlayCtx.restore();
         }
         overlayCtx.restore();
       }
@@ -796,6 +925,8 @@ function connect() {
   camEmote = document.getElementById('camEmote');
   camBlack = document.getElementById('camBlack');
 
+  greyDie = document.getElementById('greyDie');
+
   requestAnimationFrame(updateOverlay);
 
   // Create and open WebSocket
@@ -932,6 +1063,16 @@ function connect() {
           'time': 600,
           'maxTime': 600,
           'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+        });
+      } else if (redemption.reward.id === '4273cc94-01d2-44fd-8b46-0e4e970e261c') {
+        console.dir(redemption);
+        // Channel point reward for d20 roll
+        // Die position: 566, 862
+        // Die dimensions: 172, 198
+        diceRewardQueue.push({
+          'user': redemption.user.display_name,
+          'time': 9700,
+          'maxTime': 9700,
         });
       }
     }
