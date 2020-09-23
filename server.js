@@ -6,8 +6,10 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 const OBSWebSocket = require('obs-websocket-js');
 const tmi = require('tmi.js');
 const fs = require('fs');
+let socket;
 let fallGuys = false;
 let song = {};
+let freeRolls = [];
 
 const opts = {
   identity: {
@@ -128,6 +130,22 @@ function onMessageHandler(target, context, msg, self) {
     } else {
       client.say(target, 'No song is currently playing!');
     }
+  } else if (commandName === '!roll') {
+    if (freeRolls.includes(context['user-id'])) {
+      freeRolls.splice(freeRolls.indexOf(context['user-id']), 1);
+      let remaining = freeRolls.reduce((a, v) => (v === context['user-id'] ? a + 1 : a), 0);
+      client.say(target, `You're using 1 of your free rolls ${context['display-name']}! You have ${remaining} free rolls remaining!`);
+
+      // Roll the dice for user
+      socket.emit('diceRoll', {
+        'display_name': context['display-name'],
+        'id': context['user-id']
+      });
+    } else {
+      client.say(target, `Sorry ${context['display-name']}, you don't have any free dice rolls to use! You can earn some from the Roll The Dice channel point reward if you're lucky!`);
+    }
+
+
   }
 }
 
@@ -150,13 +168,18 @@ const updateSong = () => {
 
 const diceRoll = (data) => {
   if (data.roll === 1) {
-    client.say('#swiftshadow', `Sorry ${data.user}, a 1 means you're getting timed out for a day! If you have any last words, get them in before Swift or a mod times you out.`);
+    client.say('#swiftshadow', `Sorry ${data.user.display_name}, a 1 means you're getting timed out for a day! If you have any last words, get them in before Swift or a mod times you out.`);
+  } else if (data.roll === 7) {
+    client.say('#swiftshadow', `${data.user.display_name}, a 7 gets you 3 free dice rolls! You can use !roll to use those!`);
+    for (let i = 0; i < 3; i++) {
+      freeRolls.push(data.user.id);
+    }
   } else if (data.roll === 19) {
-    client.say('#swiftshadow', `Congrats ${data.user}, a 19 gets you a gifted sub!`);
+    client.say('#swiftshadow', `Congrats ${data.user.display_name}, a 19 gets you a gifted sub!`);
   } else if (data.roll === 20) {
-    client.say('#swiftshadow', `Incredible ${data.user}!!! Use !d20 to see what rewards you can pick from as a result of your amazing luck!`);
+    client.say('#swiftshadow', `Incredible ${data.user.display_name}, you got a 20!!! Use !d20 to see what rewards you can pick from as a result of your amazing luck!`);
   } else {
-    client.say('#swiftshadow', `Too bad ${data.user}... Maybe you'll have better luck next time!`);
+    client.say('#swiftshadow', `A ${data.roll}! Too bad ${data.user.display_name}... Maybe you'll have better luck next time!`);
   }
 };
 
@@ -187,7 +210,7 @@ obs.on('error', err => {
 });
 
 io.on('connection', (sock) => {
-  const socket = sock;
+  socket = sock;
 
   // Change scene in OBS
   socket.on('changeScene', (scene) => {

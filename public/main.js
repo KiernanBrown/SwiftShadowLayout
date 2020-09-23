@@ -261,7 +261,6 @@ function updateOverlay() {
     overlayCtx.drawImage(greyDie, dieX, dieY);
     let textX = dieW / 2 - (overlayCtx.measureText(dice.roll).width / 2) + dieX;
     let textY = dieH / 2 + 8 + dieY;
-    console.dir(overlayCtx.measureText(dice.roll));
     overlayCtx.fillText(dice.roll, textX, textY);
     overlayCtx.lineWidth = 0.6;
     if (dice.stopped) {
@@ -899,6 +898,15 @@ function connect() {
     setStats(stats);
   });
 
+  socket.on('diceRoll', (user) => {
+    console.dir('rolling!!!');
+    diceRewardQueue.push({
+      'user': user,
+      'time': 9700,
+      'maxTime': 9700,
+    });
+  });
+
   // Get stats from server (not functional yet)
   getStats();
 
@@ -912,7 +920,6 @@ function connect() {
 
   // Populate emotes
   // There is definitely a better way of doing this. Is there an API that can get an image URL by emote name?
-  // TODO: Move all emotes into a JSON file and just loop to add them
   getEmotes();
 
   // Set up Canvases
@@ -1070,7 +1077,7 @@ function connect() {
         // Die position: 566, 862
         // Die dimensions: 172, 198
         diceRewardQueue.push({
-          'user': redemption.user.display_name,
+          'user': redemption.user,
           'time': 9700,
           'maxTime': 9700,
         });
