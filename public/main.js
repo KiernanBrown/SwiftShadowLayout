@@ -54,6 +54,7 @@ const nat20Audio = new Audio('/media/sounds/ItsMoreFun.wav');
 const tooBadAudio = new Audio('/media/sounds/TooBad.wav');
 const impressiveAudio = new Audio('/media/sounds/Impressive.wav');
 const continuesAudio = new Audio('/media/sounds/TheGameContinues.wav');
+const wellDoneAudio = new Audio('/media/sounds/WellDone.wav');
 
 
 // Fall Guys info
@@ -279,6 +280,8 @@ function updateOverlay() {
 
       if (dice.roll === 1) {
         nat1Audio.play();
+      } else if (dice.roll === 2) {
+        wellDoneAudio.play();
       } else if (dice.roll === 7) {
         continuesAudio.play()
       } else if (dice.roll === 19) {
@@ -1084,6 +1087,10 @@ function connect() {
           'time': 9700,
           'maxTime': 9700,
         });
+      } else if (redemption.reward.id === '28bd23f0-85d9-4f73-a6d9-6fa6ed7da060') {
+        socket.emit('skipSong');
+      } else if (redemption.reward.id === 'f52487ee-c191-4d8d-be00-edcf9b622abb') {
+        socket.emit('backSong');
       }
     }
   };

@@ -196,18 +196,26 @@ const updateSong = () => {
   if (spotifyAccessToken) {
     spotifyApi.getMyCurrentPlayingTrack().then(
       (data) => {
-        let artist = [];
-        data.body.item.artists.forEach(art => {
-          artist.push(art.name);
-        });
-        let newSong = {
-          'name': data.body.item.name,
-          'artist': artist.toString()
-        }
-        
-        if (newSong.name != song.name || newSong.artist != song.artist) {
-          console.dir('Song Changed');
-          song = newSong;
+        if (data.body) {
+          if (!data.body.is_playing) {
+            song = {};
+          } else {
+            let artist = [];
+            data.body.item.artists.forEach(art => {
+              artist.push(art.name);
+            });
+            let newSong = {
+              'name': data.body.item.name,
+              'artist': artist.toString()
+            }
+            
+            if (newSong.name != song.name || newSong.artist != song.artist) {
+              console.dir('Song Changed');
+              song = newSong;
+            }
+          }
+        } else {
+          song = {};
         }
       },
       (err) => {
@@ -220,6 +228,9 @@ const updateSong = () => {
 const diceRoll = (data) => {
   if (data.roll === 1) {
     client.say('#swiftshadow', `Sorry ${data.user.display_name}, a 1 means you're getting timed out for a day! If you have any last words, get them in before Swift or a mod times you out.`);
+  } else if (data.roll === 2) {
+    client.say('#swiftshadow', 'A 2 gets you a free design from Thom!! Check your whispers for more information and a form for you to fill out!');
+    client.whisper(data.user.display_name, "Fill out this form to give Thom information about the design you want! https://forms.gle/aexfeV6KXCquEJPGA");
   } else if (data.roll === 7) {
     client.say('#swiftshadow', `${data.user.display_name}, a 7 gets you 3 free dice rolls! You can use !roll to use those!`);
     for (let i = 0; i < 3; i++) {
@@ -298,6 +309,32 @@ io.on('connection', (sock) => {
   socket.on('resetSession', () => {
     resetSession();
     socket.emit('resetSession', stats);
+  });
+
+  socket.on('skipSong', () => {
+    spotifyApi.skipToNext().then(
+      (data) => {
+        setTimeout(() => {
+          updateSong();
+        }, 100);
+      },
+      (err) => {
+        console.log(err);
+      }
+    );
+  });
+
+  socket.on('backSong', () => {
+    spotifyApi.skipToPrevious().then(
+      (data) => {
+        setTimeout(() => {
+          updateSong();
+        }, 100);
+      },
+      (err) => {
+        console.log(err);
+      }
+    );
   });
 });
 
