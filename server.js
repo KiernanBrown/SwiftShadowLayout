@@ -10,6 +10,9 @@ const { chatbotPassword, spotifyClientID, spotifyClientSecret } = require('./con
 const passport = require("passport");
 const SpotifyStrategy = require('passport-spotify').Strategy;
 const Spotify = require('spotify-web-api-node');
+const fetch = require('node-fetch');
+const btoa = require('btoa');
+const { json } = require("express");
 
 let socket;
 let fallGuys = false;
@@ -118,11 +121,33 @@ passport.use(
       spotifyAccessToken = accessToken;
       spotifyRefreshToken = refreshToken;
       spotifyApi.setAccessToken(spotifyAccessToken);
-      //spotifyApi.setPromiseImplementation(Q);
+      setInterval(() => {
+        spotifyRefresh();
+      }, 3550000);
       return done(null, profile);
     }
   )
 );
+
+const spotifyRefresh = () => {
+  fetch(
+    'https://accounts.spotify.com/api/token', {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic ' + btoa(`${spotifyClientID}:${spotifyClientSecret}`),
+        'Accept': 'application/json'
+      },
+      body: `grant_type=refresh_token&refresh_token=${spotifyRefreshToken}`
+    }
+  )
+  .then(res => {
+    res.json().then(data => {
+      spotifyAccessToken = data.access_token;
+      spotifyApi.setAccessToken(spotifyAccessToken);
+    })
+  })
+};
 
 // Called every time a message comes in
 function onMessageHandler(target, context, msg, self) {
@@ -206,11 +231,10 @@ const updateSong = () => {
             });
             let newSong = {
               'name': data.body.item.name,
-              'artist': artist.toString()
+              'artist': artist.join(', ')
             }
             
             if (newSong.name != song.name || newSong.artist != song.artist) {
-              console.dir('Song Changed');
               song = newSong;
             }
           }
@@ -362,7 +386,7 @@ app.get(
   "/spotify",
   passport.authenticate("spotify", {
     scope: ["user-read-email", "user-read-private", "user-read-playback-state", "user-modify-playback-state"],
-    showDialog: false,
+    showDialog: true,
   })
 );
 
