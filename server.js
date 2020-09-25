@@ -6,15 +6,29 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 const OBSWebSocket = require('obs-websocket-js');
 const tmi = require('tmi.js');
 const fs = require('fs');
+const { chatbotPassword, spotifyClientID, spotifyClientSecret } = require('./config.json');
+const passport = require("passport");
+const SpotifyStrategy = require('passport-spotify').Strategy;
+const Spotify = require('spotify-web-api-node');
+
 let socket;
 let fallGuys = false;
 let song = {};
 let freeRolls = [];
 
+const spotifyApi = new Spotify({
+  clientId: spotifyClientID,
+  clientSecret: spotifyClientSecret,
+  redirectUri: 'http://localhost:3000/spotify/callback'
+});
+
+let spotifyAccessToken;
+let spotifyRefreshToken;
+
 const opts = {
   identity: {
     username: 'ChatbotShadow',
-    password: 'oauth:86hmvarktvwna5t29d5z5ocgd7jw4x'
+    password: chatbotPassword
   },
   channels: [
     'SwiftShadow'
@@ -83,6 +97,32 @@ client.on('message', onMessageHandler);
 client.on('connected', onConnectedHandler);
 
 client.connect();
+
+// Spotify-Passport
+passport.serializeUser(function (user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function (obj, done) {
+  done(null, obj);
+});
+
+passport.use(
+  new SpotifyStrategy(
+    {
+      clientID: spotifyClientID,
+      clientSecret: spotifyClientSecret,
+      callbackURL: 'http://localhost:3000/spotify/callback'
+    },
+    function(accessToken, refreshToken, expires_in, profile, done) {
+      spotifyAccessToken = accessToken;
+      spotifyRefreshToken = refreshToken;
+      spotifyApi.setAccessToken(spotifyAccessToken);
+      //spotifyApi.setPromiseImplementation(Q);
+      return done(null, profile);
+    }
+  )
+);
 
 // Called every time a message comes in
 function onMessageHandler(target, context, msg, self) {
@@ -153,14 +193,27 @@ function onConnectedHandler(addr, port) {
 }
 
 const updateSong = () => {
-  let songText = fs.readFileSync('public/Snip/Snip.txt', 'utf8').split('-$-');
-  let newSong = songText.length > 1 ? {
-    'name': songText[0].trim(),
-    'artist': songText[1].trim()
-  } : {};
-
-  if (newSong.name != song.name || newSong.artist != song.artist) {
-    song = newSong;
+  if (spotifyAccessToken) {
+    spotifyApi.getMyCurrentPlayingTrack().then(
+      (data) => {
+        let artist = [];
+        data.body.item.artists.forEach(art => {
+          artist.push(art.name);
+        });
+        let newSong = {
+          'name': data.body.item.name,
+          'artist': artist.toString()
+        }
+        
+        if (newSong.name != song.name || newSong.artist != song.artist) {
+          console.dir('Song Changed');
+          song = newSong;
+        }
+      },
+      (err) => {
+        console.log(err);
+      }
+    );
   }
 };
 
@@ -252,6 +305,9 @@ io.on('connection', (sock) => {
 // https://expressjs.com/en/starter/static-files.html
 app.use(express.static("public"));
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 // https://expressjs.com/en/starter/basic-routing.html
 app.get('/', (request, response) => {
   response.sendFile(__dirname + "/views/index.html");
@@ -264,6 +320,23 @@ app.get('/stats', (req, res) => {
 app.get('/emotes', (req, res) => {
   res.json(emotes);
 });
+
+app.get(
+  "/spotify",
+  passport.authenticate("spotify", {
+    scope: ["user-read-email", "user-read-private", "user-read-playback-state", "user-modify-playback-state"],
+    showDialog: false,
+  })
+);
+
+app.get(
+  "/spotify/callback",
+  passport.authenticate("spotify", { failureRedirect: "/login" }),
+  function (req, res) {
+    updateSong();
+    res.redirect("/");
+  }
+);
 
 server.listen(port, () => {
   console.log(`Listening on ${port}`);
