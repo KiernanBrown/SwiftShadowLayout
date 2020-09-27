@@ -7,17 +7,16 @@ This requires you to use the LiveSplit WebSocket Server component in livesplit d
 ### OBS Plugins
 This requries you to use the obs-websockt plugin for OBS in order to change scenes in OBS. The download and setup information for this plugin can be found here: [https://obsproject.com/forum/resources/obs-websocket-remote-control-obs-studio-from-websockets.466/](https://obsproject.com/forum/resources/obs-websocket-remote-control-obs-studio-from-websockets.466/)
 
-This also uses obs-websocket-js in order to change scenes using Node. Documentation for this can be found here: [https://github.com/haganbmj/obs-websocket-js](https://github.com/haganbmj/obs-websocket-js)
-
 ### Current Features
 * Support for channel point rewards being redeemed:
   * Chat members can give luck to me during a run as a channel point reward. This will pick from a set of messages to display on stream and play a sound effect.
   * Chat members can replace my facecam with a supported emote of thier choice.
   * Chat members can redshift/blueshift my layout which will toggle the overlay color from red to blue.
+  * Chat members can skip to the next song in the playlist or replay the previous song in the playlist.
+  * Chat members can use the Roll The Dice channel point reward that rolls a d20 on the layout and gives a chance at different rewards.
 * Overlay changes colors based on if a run is in progress or not. This changes both the image color on the webpage and also the current scene in OBS.
-* Chatbot commands such as !wins and !streak for Fall Guys streams and !song for when a Spotify playlist is going.
-* Roll The Dice channel point reward that rolls a d20 on the layout and gives viewers a chance at different rewards.
-* Uses Spotify's Web API to get the currently playing song for a !song command
+* Uses Spotify's Web API to get the currently playing song for a !song command that shows the currently playing song.
+* Chatbot commands such as !wins and !streak for Fall Guys streams (could be adapted for other games).
 
 ### Planned Features
 * Support more emotes for the facecam emote reward. Look into a way of getting an emote URL just providing the name of an emote (I haven't found anything on this front yet).
