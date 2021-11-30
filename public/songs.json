@@ -1,7 +1,7 @@
 [
   {
     "game": "Trauma Center 2",
-    "songs": ["Active Doctors", "Growing Feeling in My Heart"]
+    "songs": ["Active Doctors", "Gentle Wind", "Growing Feeling in My Heart"]
   },
   { "game": "Trauma Team", "songs": ["Cool Beauty"] },
   {
@@ -179,6 +179,7 @@
     "game": "Stella Glow",
     "songs": [
       "A Lambert Holiday",
+      "Blazing Light (Hilda's Song 2)",
       "Elcrest, The Legendary Hero (Harbingers Boss Battle)",
       "Levia (Lisette's Song 2)",
       "Port Noir, Harbor Town",
@@ -207,7 +208,7 @@
     "songs": ["Etro's Champion", "Full Speed Ahead", "Plains of Eternity"]
   },
   {
-    "game": "Lightning REturns: Final Fantasy XIII",
+    "game": "Lightning Returns: Final Fantasy XIII",
     "songs": ["Crimson Blitz", "Savior of Souls"]
   },
   {
@@ -248,5 +249,36 @@
   {
     "game": "Baten Kaitos II",
     "songs": ["The valedictory elegy"]
+  },
+  {
+    "game": "DELTARUNE",
+    "songs": ["Field of Hopes and Dreams", ""]
+  },
+  {
+    "game": "Rivals of Aether",
+    "songs": ["Luna Ascension EX"]
+  },
+  {
+    "game": "Cave Story+",
+    "songs": ["Mimiga Village", "On to Bushlands"]
+  },
+  {
+    "game": "Super Smash Bros. Ultimate",
+    "songs": ["Aria of the Soul [Revelations: Persona"]
+  },
+  {
+    "game": "Scarlet Nexus",
+    "songs": ["Welcome to the Musubi's"]
+  },
+  {
+    "game": "Etrian Odyssey 2 Untold",
+    "songs": ["Cityscape - The Wind Shall Summon Heroes"]
+  },
+  {
+    "game": "Etrian Odyssey V",
+    "songs": [
+      "Cityscape - The Sun Rises for Ones Who Smile",
+      "Labyrinth II - Jagged Reach"
+    ]
   }
 ]

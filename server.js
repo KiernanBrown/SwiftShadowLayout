@@ -78,25 +78,16 @@ let stats = {
 };
 const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
-let insulted = false;
-let insults = [
-  'Seriously, no wins this stream? None at all?',
-  'Really, how is he this bad?',
-  "Can't even finish an FF7R run and now this? smh",
-  "I bet he doesn't even understand how seesaws work",
-  'Sadge fart of Fall Guys',
-  'Swift is such a 2Head',
-  'Imagine calling yourself the Hexagod and choking this hard Pepega',
-  "Why even have a !wins command if it'll always be at 0 LULW",
-  'Sorry everyone in chat has to see this disgraceful gameplay PepeHands',
-  "I'm sure even Kairi would be more useful on a team than him",
-  'SuccShadow coming out in full force today eh SandbagHop',
-];
-let usedInsults = [];
 let emotes = {};
 let loadedEmotes = fs.readFileSync('public/emotes.json');
 if (loadedEmotes) {
   emotes = JSON.parse(loadedEmotes);
+}
+
+let songs = [];
+let loadedSongs = fs.readFileSync('public/songs.json');
+if (loadedSongs) {
+  songs = JSON.parse(loadedSongs);
 }
 
 // Load stats from JSON if it exists
@@ -191,26 +182,6 @@ function onMessageHandler(target, context, msg, self) {
       target,
       `Swift has won ${stats.sessionWins} games this session! Swift has a total win count of ${stats.totalWins}!`
     );
-
-    // Chatbot gonna get mean
-    let insultChance = Math.floor(Math.random() * 2);
-    if (stats.sessionWins === 0 && !insulted && insultChance === 0) {
-      let numInsults = Math.floor(Math.random() * 3) + 1;
-      for (let i = 0; i < numInsults; i++) {
-        let insult;
-        do {
-          insult = insults[Math.floor(Math.random() * insults.length)];
-        } while (usedInsults.includes(insult));
-        setTimeout(() => {
-          client.say(target, insult);
-        }, 3500 * (i + 1));
-      }
-      insulted = true;
-      setTimeout(() => {
-        usedInsults = [];
-        insulted = false;
-      }, 240000);
-    }
   } else if (commandName === '!streak' && fallGuys) {
     if (stats.winStreak === stats.highWinStreak) {
       client.say(
@@ -224,18 +195,13 @@ function onMessageHandler(target, context, msg, self) {
       );
     }
   } else if (commandName === '!song') {
-    if (song.name) {
-      client.say(target, `The current song is ${song.name}`);
-    } else {
-      client.say(target, 'No song is currently playing!');
-    }
-    /*if (song.name && song.artist) {
-      client.say(target, `The current song is ${song.name} by ${song.artist}`);
+    if (song.name && song.game) {
+      client.say(target, `The current song is ${song.name} from ${song.game}`);
     } else if (song.name) {
       client.say(target, `The current song is ${song.name}`);
     } else {
       client.say(target, 'No song is currently playing!');
-    }*/
+    }
   } /*else if (commandName === '!roll') {
     if (freeRolls.includes(context['user-id'])) {
       freeRolls.splice(freeRolls.indexOf(context['user-id']), 1);
@@ -276,6 +242,23 @@ const updateSong = () => {
         if (data.body) {
           if (!data.body.is_playing) {
             song = {};
+            obs
+              .send('SetSceneItemRender', {
+                source: 'Music',
+                render: false,
+              })
+              .catch((err) => {
+                console.error(err);
+              });
+
+            obs
+              .send('SetSceneItemRender', {
+                source: 'swifts7Jam',
+                render: false,
+              })
+              .catch((err) => {
+                console.error(err);
+              });
           } else {
             let artist = [];
             data.body.item.artists.forEach((art) => {
@@ -286,8 +269,47 @@ const updateSong = () => {
               artist: artist.join(', '),
             };
 
+            // Try to find the game the song is from
+            for (let g of songs) {
+              let foundSong = g.songs.find((s) => {
+                return s.toLowerCase() === newSong.name.toLowerCase();
+              });
+              if (foundSong) {
+                newSong.game = g.game;
+                break;
+              }
+            }
+
             if (newSong.name != song.name || newSong.artist != song.artist) {
               song = newSong;
+
+              // Update song information in OBS
+              obs
+                .send('SetSceneItemRender', {
+                  source: 'Music',
+                  render: true,
+                })
+                .catch((err) => {
+                  console.error(err);
+                });
+
+              obs
+                .send('SetSceneItemRender', {
+                  source: 'swifts7Jam',
+                  render: true,
+                })
+                .catch((err) => {
+                  console.error(err);
+                });
+
+              obs
+                .send('SetTextGDIPlusProperties', {
+                  source: 'Music',
+                  text: song.name,
+                })
+                .catch((err) => {
+                  console.error(err);
+                });
             }
           }
         } else {
@@ -585,7 +607,6 @@ io.on('connection', (sock) => {
 
   // Pokemon sockets
   socket.on('togglePokemon', (data) => {
-    console.dir(`Toggling ${data.pokemon}`);
     obs
       .send('GetCurrentScene')
       .then((scene) => {
