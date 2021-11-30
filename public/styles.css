@@ -1,7 +1,7 @@
 /* CSS files add styling rules to your content */
 
 #overlayCanvas {
-  background-image: url('/media/overlays/GreyOverlay.png');
+  /*background-image: url('/media/overlays/GreyOverlay.png');*/
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
@@ -9,26 +9,19 @@
 
 #gameCanvas {
   position: absolute;
-  left: 391px;
-  top: 14px;
+  left: 443px;
+  top: 17px;
 }
 
 #camCanvas {
   position: absolute;
-  left: 21px;
-  top: 14px;
+  left: 18px;
+  top: 17px;
 }
 
 #camEmote {
   position: absolute;
   visibility : hidden;
-}
-
-#camBlack {
-  position: absolute;
-  left: 21px;
-  top: 14px;
-  width: 349px;
-  height: 256px;
-  visibility: hidden;
+  left: 18px;
+  top: 17px;
 }

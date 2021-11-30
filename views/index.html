@@ -16,13 +16,11 @@
     <canvas id="overlayCanvas" width="1920" height="1080">
         </canvas>
     <!-- Canvas for drawing on gameplay -->
-    <canvas id="gameCanvas" width="1465" height="818">
+    <canvas id="gameCanvas" width="1460" height="816">
       </canvas>
-      <!-- x:359 (+1), y:42 (+1) -->
-    <img id="camBlack" src = "/media/overlays/CamBlack.png">
     <img id="camEmote">
     <!-- Canvas for drawing on webcam. Not used yet -->
-    <canvas id="camCanvas" width="349" height="256">
+    <canvas id="camCanvas" width="390" height="289">
       </canvas>
   </div>
   <div class="container">
@@ -35,6 +33,6 @@
   <img id="greyDie" src = "/media/overlays/GreyD20.png" width="172" height="198" style="display:none">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="main.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>

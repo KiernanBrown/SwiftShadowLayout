@@ -6,9 +6,18 @@
   "scripts": {
     "start": "node server.js"
   },
+  "engines": {
+    "node": "12.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KiernanBrown/SwiftShadowLayout.git"
+  },
+  "license": "ISC",
   "dependencies": {
     "btoa": "^1.2.1",
     "express": "^4.17.1",
+    "livesplit-client": "^1.0.0",
     "node-fetch": "^2.6.1",
     "obs-websocket-js": "^4.0.1",
     "passport": "^0.4.1",
@@ -16,17 +25,5 @@
     "socket.io": "^2.3.0",
     "spotify-web-api-node": "^4.0.0",
     "tmi.js": "^1.5.0"
-  },
-  "engines": {
-    "node": "12.x"
-  },
-  "repository": {
-    "url": "https://glitch.com/edit/#!/swiftshadow-layout"
-  },
-  "license": "MIT",
-  "keywords": [
-    "node",
-    "glitch",
-    "express"
-  ]
+  }
 }

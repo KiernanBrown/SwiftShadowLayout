@@ -1,26 +1,27 @@
+import { addTrackedPokemonBySplit, resetTracker, initPokemonSocket } from './pokemon.js';
+
 const clientId = 'ttwsfmzramvda8ualo9mi9gc701580';
 const redirectURI = 'http://localhost:3000';
-const scope = 'channel_read+channel:read:redemptions';
+const scope = 'channel_read+channel:manage:redemptions';
 let channelId;
 let ws;
-let splitsSocket;
+
 let overlayCanvas;
 let overlayCtx;
 let gameCanvas;
 let gameCtx;
-let camCanvas;
-let camCtx;
+const camDimensions = {
+  x: 18,
+  y: 17,
+  width: 390,
+  height: 289,
+};
 let camEmote;
-let camBlack;
 let dt = 0;
 let lastUpdate = Date.now();
 let resetSounds = [];
 let running = false;
 let socket;
-let timerState;
-let prevTimerState;
-let run;
-let currentSplit;
 let speedrun = true;
 
 // Audio files for luck
@@ -34,9 +35,11 @@ let overlayQueue = [];
 let rewardQueue = [];
 let camRewardQueue = [];
 let lucks = [];
-let shift = 'Blue';
+let luckTimeouts = [];
+let luckInterval = 20 * 60000; // Minutes to ms
+let shift = 'Red';
 let emotes = [];
-const emoteSize = 256; // Facecam emote size in pixels
+const emoteSize = camDimensions.height; // Facecam emote size in pixels
 
 const maxRadius = 1080;
 
@@ -55,7 +58,7 @@ const tooBadAudio = new Audio('/media/sounds/TooBad.wav');
 const impressiveAudio = new Audio('/media/sounds/Impressive.wav');
 const continuesAudio = new Audio('/media/sounds/TheGameContinues.wav');
 const wellDoneAudio = new Audio('/media/sounds/WellDone.wav');
-
+const aliceAudio = new Audio('/media/sounds/AliceAre.wav');
 
 // Fall Guys info
 let fallGuys = false;
@@ -63,7 +66,7 @@ let infoFill = 'rgba(48, 48, 48, 0.85)';
 let totalWins = 0;
 let sessionAttempts = 0;
 let sessionWins = 0;
-let winRate = "0.00%";
+let winRate = '0.00%';
 let winStreak = 0;
 let highWinStreak = 0;
 let eliminations = [0, 0, 0, 0, 0];
@@ -71,7 +74,12 @@ let sessionRounds = 0;
 let teamRounds = 0;
 let teamEliminations = 0;
 let finalStats = [];
-let finalLevels = ['Hex-a-gone', 'Fall Mountain', 'Royal Fumble', 'Jump Showdown'];
+let finalLevels = [
+  'Hex-a-gone',
+  'Fall Mountain',
+  'Royal Fumble',
+  'Jump Showdown',
+];
 
 let infoRectX = 21;
 let infoRectY = 299;
@@ -81,52 +89,52 @@ let infoRectOff = infoRectW + 80;
 
 const sessionInfoMessages = [
   {
-    'header': 'Lifetime Stats',
-    'type': 'Total Wins',
-    'message': totalWins,
-    'time': 6000,
-    'maxTime': 6000,
-    'x': infoRectOff
+    header: 'Lifetime Stats',
+    type: 'Total Wins',
+    message: totalWins,
+    time: 6000,
+    maxTime: 6000,
+    x: infoRectOff,
   },
   {
-    'header': 'Session Stats',
-    'type': 'Games Played',
-    'message': sessionAttempts,
-    'time': 6000,
-    'maxTime': 6000,
-    'x': infoRectOff
+    header: 'Session Stats',
+    type: 'Games Played',
+    message: sessionAttempts,
+    time: 6000,
+    maxTime: 6000,
+    x: infoRectOff,
   },
   {
-    'header': 'Session Stats',
-    'type': 'Wins',
-    'message': sessionWins,
-    'time': 6000,
-    'maxTime': 6000,
-    'x': infoRectOff
+    header: 'Session Stats',
+    type: 'Wins',
+    message: sessionWins,
+    time: 6000,
+    maxTime: 6000,
+    x: infoRectOff,
   },
   {
-    'header': 'Session Stats',
-    'type': 'Current Streak',
-    'message': winStreak,
-    'time': 6000,
-    'maxTime': 6000,
-    'x': infoRectOff
+    header: 'Session Stats',
+    type: 'Current Streak',
+    message: winStreak,
+    time: 6000,
+    maxTime: 6000,
+    x: infoRectOff,
   },
   {
-    'header': 'Session Stats',
-    'type': 'Highest Streak',
-    'message': highWinStreak,
-    'time': 6000,
-    'maxTime': 6000,
-    'x': infoRectOff
+    header: 'Session Stats',
+    type: 'Highest Streak',
+    message: highWinStreak,
+    time: 6000,
+    maxTime: 6000,
+    x: infoRectOff,
   },
   {
-    'header': 'Session Stats',
-    'type': 'Win Rate',
-    'message': winRate,
-    'time': 6000,
-    'maxTime': 6000,
-    'x': infoRectOff
+    header: 'Session Stats',
+    type: 'Win Rate',
+    message: winRate,
+    time: 6000,
+    maxTime: 6000,
+    x: infoRectOff,
   },
 ];
 
@@ -134,6 +142,23 @@ let currentInfoIndex = 0;
 let currentInfoMessage = sessionInfoMessages[currentInfoIndex];
 let nextInfoMessage = sessionInfoMessages[currentInfoIndex] + 1;
 let previousInfoMessage = sessionInfoMessages[sessionInfoMessages.length - 1];
+
+// Gnosia info
+let gnosia = false;
+let gnosiaStats = {};
+let gnosiaRoles = [
+  'Crew',
+  'Engineer',
+  'Guardian Angel',
+  'Doctor',
+  'Guard Duty',
+  'Gnosia',
+  'AC Follower',
+];
+let roleIndex = 0;
+
+// Pokemon info
+let pokemon = true;
 
 // Emote class
 // Emotes are created given a name, image, and size (default of 112)
@@ -149,32 +174,38 @@ class Emote {
 }
 
 function parseFragment(hash) {
-  var hashMatch = function (expr) {
-    var match = hash.match(expr);
+  let hashMatch = function (expr) {
+    let match = hash.match(expr);
     return match ? match[1] : null;
   };
-  var state = hashMatch(/state=(\w+)/);
+  let state = hashMatch(/state=(\w+)/);
   if (sessionStorage.twitchOAuthState == state)
     sessionStorage.twitchOAuthToken = hashMatch(/access_token=(\w+)/);
-  return
-};
+  return;
+}
 
 function authUrl() {
   sessionStorage.twitchOAuthState = nonce(15);
-  var url = 'https://api.twitch.tv/kraken/oauth2/authorize' +
+  let url =
+    'https://api.twitch.tv/kraken/oauth2/authorize' +
     '?response_type=token' +
-    '&client_id=' + clientId +
-    '&redirect_uri=' + redirectURI +
-    '&state=' + sessionStorage.twitchOAuthState +
-    '&scope=' + scope;
+    '&client_id=' +
+    clientId +
+    '&redirect_uri=' +
+    redirectURI +
+    '&state=' +
+    sessionStorage.twitchOAuthState +
+    '&scope=' +
+    scope;
   return url;
 }
 
 // Source: https://www.thepolyglotdeveloper.com/2015/03/create-a-random-nonce-string-using-javascript/
 function nonce(length) {
-  var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (var i = 0; i < length; i++) {
+  let text = '';
+  let possible =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < length; i++) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return text;
@@ -183,7 +214,7 @@ function nonce(length) {
 // To stay connected to the server, we must ping it at least once every 5 minutes
 function heartbeat() {
   let message = {
-    type: 'PING'
+    type: 'PING',
   };
   ws.send(JSON.stringify(message));
 }
@@ -196,8 +227,8 @@ function listen() {
     data: {
       // Listen to Channel Point Rewards
       topics: ['channel-points-channel-v1.' + channelId],
-      auth_token: sessionStorage.twitchOAuthToken
-    }
+      auth_token: sessionStorage.twitchOAuthToken,
+    },
   };
   ws.send(JSON.stringify(message));
 }
@@ -220,13 +251,13 @@ function updateOverlay() {
   }
 
   // Draw D20
-  if (diceRewardQueue.length != 0) {
+  /*if (diceRewardQueue.length != 0) {
     let dice = diceRewardQueue[0];
     if (dice.time === dice.maxTime) {
       diceStartAudio.play();
       dice.rolls = 0;
       dice.roll = Math.floor(Math.random() * 20) + 1;
-      dice.nextRoll = Math.floor(Math.random() * 6) + 22 + (4.38 * dice.rolls);
+      dice.nextRoll = Math.floor(Math.random() * 6) + 22 + 4.38 * dice.rolls;
       dice.timePast = 0;
     }
     dice.time -= dt;
@@ -236,9 +267,9 @@ function updateOverlay() {
       dice.timePast -= dice.nextRoll;
       dice.roll = Math.floor(Math.random() * 20) + 1;
       if (dice.time >= 5500) {
-        dice.nextRoll = Math.floor(Math.random() * 6) + 16 + (2.88 * dice.rolls);
+        dice.nextRoll = Math.floor(Math.random() * 6) + 16 + 2.88 * dice.rolls;
       } else {
-        dice.nextRoll = Math.floor(Math.random() * 6) + 42 + (5.88 * dice.rolls);
+        dice.nextRoll = Math.floor(Math.random() * 6) + 42 + 5.88 * dice.rolls;
       }
 
       dice.rolls++;
@@ -261,7 +292,7 @@ function updateOverlay() {
     overlayCtx.font = '32px Arial';
     overlayCtx.globalAlpha = opacity;
     overlayCtx.drawImage(greyDie, dieX, dieY);
-    let textX = dieW / 2 - (overlayCtx.measureText(dice.roll).width / 2) + dieX;
+    let textX = dieW / 2 - overlayCtx.measureText(dice.roll).width / 2 + dieX;
     let textY = dieH / 2 + 8 + dieY;
     overlayCtx.fillText(dice.roll, textX, textY);
     overlayCtx.lineWidth = 0.6;
@@ -283,7 +314,7 @@ function updateOverlay() {
       } else if (dice.roll === 2) {
         wellDoneAudio.play();
       } else if (dice.roll === 7) {
-        continuesAudio.play()
+        continuesAudio.play();
       } else if (dice.roll === 19) {
         impressiveAudio.play();
       } else if (dice.roll === 20) {
@@ -293,8 +324,8 @@ function updateOverlay() {
       }
 
       socket.emit('diceRoll', {
-        'roll': dice.roll, 
-        'user': dice.user
+        roll: dice.roll,
+        user: dice.user,
       });
     }
 
@@ -312,21 +343,26 @@ function updateOverlay() {
       // Run has started
       if (overlay.time === overlay.maxTime) {
         // Set the new overlay
-        overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
-
         // Change scene in OBS
-        socket.emit('changeScene', `${shift} Overlay`);
+        if (speedrun) {
+          overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
+          socket.emit('changeScene', `${shift} Overlay`);
+        } else {
+          socket.emit('changeScene', `${shift} Casual Overlay`);
+        }
       }
 
       radius = ((overlay.maxTime - overlay.time) / overlay.maxTime) * maxRadius;
-
     } else if (overlay.type === 'reset') {
       // Run has reset
       if (overlay.time === overlay.maxTime) {
         infoFill = 'rgba(48, 48, 48, 0.85)';
         // Set the new overlay
-        overlayCanvas.style.backgroundImage = "url('/media/overlays/GreyOverlay.png')";
-        overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
+        if (speedrun) {
+          overlayCanvas.style.backgroundImage =
+            "url('/media/overlays/GreyOverlay.png')";
+          overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
+        }
 
         // Play a sound effect
         if (overlay.sound) {
@@ -338,7 +374,6 @@ function updateOverlay() {
       }
 
       radius = (overlay.time / overlay.maxTime) * maxRadius;
-
     } else if (overlay.type === 'shift') {
       console.dir('Layout shifting!');
       // Redshift/Blueshift reward
@@ -346,10 +381,14 @@ function updateOverlay() {
         // Shift the overlay color and set the new overlay
         shift = shift === 'Blue' ? 'Red' : 'Blue';
         console.dir(shift);
-        overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
 
         // Change scene in OBS
-        socket.emit('changeScene', `${shift} Overlay`);
+        if (speedrun) {
+          overlay.newOverlay.src = `/media/overlays/${shift}Overlay.png`;
+          socket.emit('changeScene', `${shift} Overlay`);
+        } else {
+          socket.emit('changeScene', `${shift} Casual Overlay`);
+        }
       }
 
       radius = ((overlay.maxTime - overlay.time) / overlay.maxTime) * maxRadius;
@@ -357,10 +396,17 @@ function updateOverlay() {
 
     // Draw the new overlay
     if (overlay.time > 0) {
+      console.dir('first block');
       if (overlay.type != 'shift' || running) {
         overlayCtx.save();
         overlayCtx.beginPath();
-        overlayCtx.arc(overlayCanvas.width / 2, overlayCanvas.height / 2, radius, 0, Math.PI * 2);
+        overlayCtx.arc(
+          overlayCanvas.width / 2,
+          overlayCanvas.height / 2,
+          radius,
+          0,
+          Math.PI * 2
+        );
         overlayCtx.clip();
         overlayCtx.clearRect(0, 0, 1920, 1080);
         overlayCtx.drawImage(overlay.newOverlay, 0, 0);
@@ -399,7 +445,8 @@ function updateOverlay() {
           overlayCtx.font = '32px Arial';
           overlayCtx.globalAlpha = opacity;
           overlayCtx.drawImage(greyDie, dieX, dieY);
-          let textX = dieW / 2 - (overlayCtx.measureText(dice.roll).width / 2) + dieX;
+          let textX =
+            dieW / 2 - overlayCtx.measureText(dice.roll).width / 2 + dieX;
           let textY = dieH / 2 + 8 + dieY;
           console.dir(overlayCtx.measureText(dice.roll));
           overlayCtx.fillText(dice.roll, textX, textY);
@@ -419,10 +466,19 @@ function updateOverlay() {
       overlayQueue[0] = overlay;
 
       if (overlay.time <= 0) {
+        console.dir('second block');
         overlayQueue.shift();
         if (overlay.type === 'start' || (overlay.type === 'shift' && running)) {
-          overlayCanvas.style.backgroundImage = `url('${overlay.newOverlay.src.substring(overlay.newOverlay.src.indexOf('/media'))}')`;
-          infoFill = shift === 'Blue' ? 'rgba(48, 28, 176, 0.85)' : 'rgba(176, 28, 28, 0.85)';
+          if (speedrun) {
+            overlayCanvas.style.backgroundImage = `url('${overlay.newOverlay.src.substring(
+              overlay.newOverlay.src.indexOf('/media')
+            )}')`;
+            console.dir('changing background');
+          }
+          infoFill =
+            shift === 'Blue'
+              ? 'rgba(48, 28, 176, 0.85)'
+              : 'rgba(176, 28, 28, 0.85)';
           if (overlay.type === 'start') {
             running = true;
           }
@@ -432,7 +488,7 @@ function updateOverlay() {
         }
       }
     }
-  }
+  }*/
 
   // Draw Fall Guys info text
   if (fallGuys) {
@@ -447,38 +503,102 @@ function updateOverlay() {
 
     // Update position of text
     if (currentInfoMessage.time >= currentInfoMessage.maxTime - 500) {
-      currentInfoMessage.x = infoRectOff - infoRectOff * Math.abs((currentInfoMessage.time - (currentInfoMessage.maxTime - 500)) / 500 - 1);
+      currentInfoMessage.x =
+        infoRectOff -
+        infoRectOff *
+          Math.abs(
+            (currentInfoMessage.time - (currentInfoMessage.maxTime - 500)) /
+              500 -
+              1
+          );
     } else if (currentInfoMessage.time <= 500) {
-      currentInfoMessage.x = infoRectOff * (currentInfoMessage.time / 500) - infoRectOff;
+      currentInfoMessage.x =
+        infoRectOff * (currentInfoMessage.time / 500) - infoRectOff;
     } else {
       currentInfoMessage.x = 0;
     }
 
     let text = currentInfoMessage.header;
 
-    if ((previousInfoMessage.header != currentInfoMessage.header && currentInfoMessage.x >= 0) || (currentInfoMessage.header != nextInfoMessage.header && currentInfoMessage.x <= 0)) {
-      overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 27);
-      overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 27);
+    if (
+      (previousInfoMessage.header != currentInfoMessage.header &&
+        currentInfoMessage.x >= 0) ||
+      (currentInfoMessage.header != nextInfoMessage.header &&
+        currentInfoMessage.x <= 0)
+    ) {
+      overlayCtx.strokeText(
+        text,
+        infoRectW / 2 -
+          overlayCtx.measureText(text).width / 2 +
+          infoRectX +
+          currentInfoMessage.x,
+        infoRectY + 27
+      );
+      overlayCtx.fillText(
+        text,
+        infoRectW / 2 -
+          overlayCtx.measureText(text).width / 2 +
+          infoRectX +
+          currentInfoMessage.x,
+        infoRectY + 27
+      );
     } else {
-      overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX, infoRectY + 27);
-      overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX, infoRectY + 27);
+      overlayCtx.strokeText(
+        text,
+        infoRectW / 2 - overlayCtx.measureText(text).width / 2 + infoRectX,
+        infoRectY + 27
+      );
+      overlayCtx.fillText(
+        text,
+        infoRectW / 2 - overlayCtx.measureText(text).width / 2 + infoRectX,
+        infoRectY + 27
+      );
     }
 
     text = currentInfoMessage.type;
-    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 121);
-    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 121);
+    overlayCtx.strokeText(
+      text,
+      infoRectW / 2 -
+        overlayCtx.measureText(text).width / 2 +
+        infoRectX +
+        currentInfoMessage.x,
+      infoRectY + 121
+    );
+    overlayCtx.fillText(
+      text,
+      infoRectW / 2 -
+        overlayCtx.measureText(text).width / 2 +
+        infoRectX +
+        currentInfoMessage.x,
+      infoRectY + 121
+    );
 
     overlayCtx.font = '56px Arial';
     text = currentInfoMessage.message;
-    overlayCtx.strokeText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 85);
-    overlayCtx.fillText(text, infoRectW / 2 - (overlayCtx.measureText(text).width / 2) + infoRectX + currentInfoMessage.x, infoRectY + 85);
+    overlayCtx.strokeText(
+      text,
+      infoRectW / 2 -
+        overlayCtx.measureText(text).width / 2 +
+        infoRectX +
+        currentInfoMessage.x,
+      infoRectY + 85
+    );
+    overlayCtx.fillText(
+      text,
+      infoRectW / 2 -
+        overlayCtx.measureText(text).width / 2 +
+        infoRectX +
+        currentInfoMessage.x,
+      infoRectY + 85
+    );
 
     currentInfoMessage.time -= dt;
 
     if (currentInfoMessage.time <= 0) {
       console.dir('Swapping info message');
       currentInfoIndex++;
-      currentInfoIndex = currentInfoIndex >= sessionInfoMessages.length ? 0 : currentInfoIndex;
+      currentInfoIndex =
+        currentInfoIndex >= sessionInfoMessages.length ? 0 : currentInfoIndex;
       let nextIndex = currentInfoIndex + 1;
       nextIndex = nextIndex >= sessionInfoMessages.length ? 0 : nextIndex;
 
@@ -488,6 +608,57 @@ function updateOverlay() {
       nextInfoMessage = sessionInfoMessages[nextIndex];
       currentInfoMessage.time = currentInfoMessage.maxTime;
     }
+    overlayCtx.restore();
+  }
+
+  // Draw Gnosia info text
+  if (gnosia) {
+    overlayCtx.save();
+    overlayCtx.lineWidth = 7.5;
+    overlayCtx.fillStyle = 'white';
+    overlayCtx.strokeStyle = 'rgb(10, 10, 10)';
+    overlayCtx.font = '48px Arial';
+
+    overlayCtx.strokeText(`Loop: ${gnosiaStats.loop}`, 580, 905);
+    overlayCtx.fillText(`Loop: ${gnosiaStats.loop}`, 580, 905);
+    overlayCtx.strokeText(`Level: ${gnosiaStats.level}`, 580, 970);
+    overlayCtx.fillText(`Level: ${gnosiaStats.level}`, 580, 970);
+    overlayCtx.strokeText(`Role: ${gnosiaStats.role}`, 580, 1035);
+    overlayCtx.fillText(`Role: ${gnosiaStats.role}`, 580, 1035);
+
+    // Write stats
+    let startingX = 872;
+    let statY = 937;
+    let valueY = 983;
+
+    overlayCtx.lineWidth = 6.2;
+    overlayCtx.font = '39px Arial';
+
+    for (let i = 0; i < gnosiaStats.stats.length; i++) {
+      overlayCtx.strokeText(`${gnosiaStats.stats[i].stat}`, startingX, statY);
+      overlayCtx.fillText(`${gnosiaStats.stats[i].stat}`, startingX, statY);
+
+      let statWidth = overlayCtx.measureText(
+        `${gnosiaStats.stats[i].stat}`
+      ).width;
+      let valueWidth = overlayCtx.measureText(
+        `${gnosiaStats.stats[i].value}`
+      ).width;
+
+      overlayCtx.strokeText(
+        `${gnosiaStats.stats[i].value}`,
+        startingX + statWidth / 2 - valueWidth / 2,
+        valueY
+      );
+      overlayCtx.fillText(
+        `${gnosiaStats.stats[i].value}`,
+        startingX + statWidth / 2 - valueWidth / 2,
+        valueY
+      );
+
+      startingX += statWidth + 26;
+    }
+
     overlayCtx.restore();
   }
 
@@ -518,7 +689,10 @@ function showRewards() {
           if (splitMessage[i] === '') {
             // Add the user's name
             reward.splitMessage.push(reward.user1);
-          } else if (i === splitMessage.length - 1 && !reward.splitMessage.includes(reward.user1)) {
+          } else if (
+            i === splitMessage.length - 1 &&
+            !reward.splitMessage.includes(reward.user1)
+          ) {
             // If this is the last part of the message and the user's name is not included yet, add the user's name and then the end
             reward.splitMessage.push(reward.user1);
             reward.splitMessage.push(splitMessage[i]);
@@ -552,14 +726,26 @@ function showRewards() {
           } else if (running && shift === 'Red') {
             gameCtx.fillStyle = `rgb(204, 18, 0, ${opacity})`;
           } else {
-            gameCtx.fillStyle = `rgba(69, 69, 69, ${opacity})`;
+            gameCtx.fillStyle = `rgba(115, 6, 180, ${opacity})`;
           }
         } else {
-          gameCtx.fillStyle = `rgba(242, 242, 242, ${opacity})`;
+          gameCtx.fillStyle = `rgba(240, 240, 240, ${opacity})`;
         }
 
-        gameCtx.strokeText(text, gameCanvas.width / 2 - (gameCtx.measureText(reward.message).width / 2 - gameCtx.measureText(typedMessage).width), 110);
-        gameCtx.fillText(text, gameCanvas.width / 2 - (gameCtx.measureText(reward.message).width / 2 - gameCtx.measureText(typedMessage).width), 110);
+        gameCtx.strokeText(
+          text,
+          gameCanvas.width / 2 -
+            (gameCtx.measureText(reward.message).width / 2 -
+              gameCtx.measureText(typedMessage).width),
+          110
+        );
+        gameCtx.fillText(
+          text,
+          gameCanvas.width / 2 -
+            (gameCtx.measureText(reward.message).width / 2 -
+              gameCtx.measureText(typedMessage).width),
+          110
+        );
         typedMessage += text;
       }
     }
@@ -578,14 +764,21 @@ function showRewards() {
 
     // Show the new image
     if (reward.time === reward.maxTime) {
-      camBlack.style.visibility = "visible";
-      camEmote.style.visibility = "visible";
-      camEmote.src = reward.emote.url;
-      camEmote.style.width = `${emoteSize}px`;
-      camEmote.style.height = `${emoteSize}px`;
-      let x = 21 + (349 - emoteSize) / 2;
-      camEmote.style.left = `${x}px`;
-      camEmote.style.top = "14px";
+      socket.emit('toggleSource', { source: 'OverlayCam', visible: false });
+      if (reward.type === 'emote') {
+        camEmote.style.visibility = 'visible';
+        camEmote.src = reward.emote.url;
+        camEmote.style.width = `${emoteSize}px`;
+        camEmote.style.height = `${emoteSize}px`;
+        //let x = camBlack.style.left + emoteSize / 2;
+        let x = camDimensions.x + (camDimensions.width - emoteSize) / 2;
+        let y = camDimensions.y;
+        camEmote.style.left = `${x}px`;
+        camEmote.style.top = `${y}px`;
+      } else if (reward.type === 'pngtuber') {
+        socket.emit('toggleSource', { source: 'PNGTuber', visible: true });
+        aliceAudio.play();
+      }
     }
 
     reward.time -= dt;
@@ -594,8 +787,13 @@ function showRewards() {
     // Remove this reward from the queue
     if (reward.time <= 0) {
       camRewardQueue.shift();
-      camBlack.style.visibility = "hidden";
-      camEmote.style.visibility = "hidden";
+      socket.emit('toggleSource', { source: 'OverlayCam', visible: true });
+      if (reward.type === 'emote') {
+        camEmote.style.visibility = 'hidden';
+      }
+      if (reward.type === 'pngtuber') {
+        socket.emit('toggleSource', { source: 'PNGTuber', visible: false });
+      }
     }
   }
 }
@@ -603,22 +801,22 @@ function showRewards() {
 // Send Fall Guys info to the server
 const updateFG = () => {
   socket.emit('updateFGInfo', {
-    'totalWins': totalWins,
-    'sessionAttempts': sessionAttempts,
-    'sessionWins': sessionWins,
-    'winRate': winRate,
-    'winStreak': winStreak,
-    'highWinStreak': highWinStreak,
-    'eliminations': eliminations,
-    'sessionRounds': sessionRounds,
-    'teamRounds': teamRounds,
-    'teamEliminations': teamEliminations,
-    'finalStats': finalStats
+    totalWins: totalWins,
+    sessionAttempts: sessionAttempts,
+    sessionWins: sessionWins,
+    winRate: winRate,
+    winStreak: winStreak,
+    highWinStreak: highWinStreak,
+    eliminations: eliminations,
+    sessionRounds: sessionRounds,
+    teamRounds: teamRounds,
+    teamEliminations: teamEliminations,
+    finalStats: finalStats,
   });
 
   // Update info messages as well
   updateInfo();
-}
+};
 
 // Add win for a given level
 const addWin = (level) => {
@@ -626,89 +824,28 @@ const addWin = (level) => {
   sessionWins++;
   winStreak++;
   highWinStreak = winStreak > highWinStreak ? winStreak : highWinStreak;
-  let finalLevelInfo = finalStats.find(e => { return e.name === level });
+  let finalLevelInfo = finalStats.find((e) => {
+    return e.name === level;
+  });
   finalLevelInfo.wins++;
-}
+};
 
 // Used when resetting a run
 const resetRun = () => {
   console.dir('run reset');
   // Clear out all users who have given luck
   lucks = [];
+  luckTimeouts.forEach((luckTO) => {
+    clearTimeout(luckTO.timeout);
+  });
 
-  // Only play a reset sound if the run has not been finished
-  let sound;
-  if (prevTimerState === 'Ended') {
-    // Don't play a sound on completed run
-    sound = false;
-  } else {
-    // Reset winstreak and play a sound on a non completed run
-    sound = true;
-    if (fallGuys) {
-      winStreak = 0;
-      sessionRounds++;
-  
-      // Track team eliminations
-      if (currentSplit.name.includes('(Team)')) {
-        teamRounds++;
-        teamEliminations++;
-      }
-  
-      // Track where we were eliminated
-      if (currentSplit.name.includes('Round 1')) {
-        eliminations[0] = eliminations[0] + 1;
-      } else if (currentSplit.name.includes('Round 2')) {
-        eliminations[1] = eliminations[1] + 1;
-      } else if (currentSplit.name.includes('Round 3')) {
-        eliminations[2] = eliminations[2] + 1;
-      } else if (currentSplit.name.includes('Round 4')) {
-        eliminations[3] = eliminations[3] + 1;
-      } else if (currentSplit.name.includes('Round 5')) {
-        eliminations[4] = eliminations[4] + 1;
-      } else if (currentSplit.name.includes('Final Round')) {
-        for(let i = 0; i < finalLevels.length; i++) {
-          let level = finalLevels[i];
-          if(currentSplit.name.includes(level)) {
-            let finalLevelInfo = finalStats.find(e => { return e.name === level });
-            finalLevelInfo.attempts++;
-            break;
-          }
-        }
-      }
-    }
+  luckTimeouts = [];
+
+  // Reset tracked pokemon
+  if (pokemon) {
+    resetTracker();
   }
-
-  if (fallGuys) {
-    winRate = `${((sessionWins / sessionAttempts) * 100).toFixed(2)}%`; // Update winRate
-    console.dir(winRate);
-    updateFG();
-  }
-
-  if (overlayQueue.length > 2) {
-    // Adjust the overlay queue to prioritize reset
-    let currentOverlay = overlayQueue.shift();
-    overlayQueue.unshift({
-      'type': 'reset',
-      'time': 600,
-      'maxTime': 600,
-      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
-      'sound': sound,
-    });
-    overlayQueue.unshift(currentOverlay);
-  } else {
-    // Reset overlay
-    overlayQueue.push({
-      'type': 'reset',
-      'time': 600,
-      'maxTime': 600,
-      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
-      'sound': sound,
-    });
-  }
-
-  // Reset livesplit variables
-  currentSplit = '';
-}
+};
 
 // Used when starting a run
 function startRun() {
@@ -718,19 +855,19 @@ function startRun() {
     // Adjust the overlay queue to prioritize start
     let currentOverlay = overlayQueue.shift();
     overlayQueue.unshift({
-      'type': 'start',
-      'time': 600,
-      'maxTime': 600,
-      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+      type: 'start',
+      time: 600,
+      maxTime: 600,
+      newOverlay: new Image(overlayCanvas.width, overlayCanvas.height),
     });
     overlayQueue.unshift(currentOverlay);
   } else {
     // Start overlay
     overlayQueue.push({
-      'type': 'start',
-      'time': 600,
-      'maxTime': 600,
-      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+      type: 'start',
+      time: 600,
+      maxTime: 600,
+      newOverlay: new Image(overlayCanvas.width, overlayCanvas.height),
     });
   }
 }
@@ -741,37 +878,44 @@ function getStats() {
   // This allows us to keep session info until I want to manually reset it
   // We can also store more information as a result (Weekly statistics/etc.)
   fetch('/stats')
-  .then(res => res.json())
-  .then(stats => {
-    console.dir(stats);
-    setStats(stats);
-  });
+    .then((res) => res.json())
+    .then((stats) => {
+      console.dir(stats);
+      setStats(stats);
+    });
+
+  fetch('/gnosia')
+    .then((res) => res.json())
+    .then((stats) => {
+      gnosiaStats = stats;
+      roleIndex = gnosiaRoles.indexOf(gnosiaStats.role);
+    });
 }
 
 function getEmotes() {
   fetch('/emotes')
-  .then(res => res.json())
-  .then(emotesJSON => {
-    if(emotesJSON.hasOwnProperty('emotes')) {
-      let ems = emotesJSON.emotes;
-      for(const emoteName in ems) {
-        let emote = ems[emoteName];
-        /*if (emote.hasOwnProperty('size')) {
-          emotes.push(new Emote())
-        } else {
+    .then((res) => res.json())
+    .then((emotesJSON) => {
+      if (emotesJSON.hasOwnProperty('emotes')) {
+        let ems = emotesJSON.emotes;
+        for (const emoteName in ems) {
+          let emote = ems[emoteName];
+          /*if (emote.hasOwnProperty('size')) {
+            emotes.push(new Emote())
+          } else {
 
-        }*/
-        emotes.push(new Emote(emoteName, emote.img, false, emote.size));
+          }*/
+          emotes.push(new Emote(emoteName, emote.img, false, emote.size));
+        }
       }
-    }
-    if(emotesJSON.hasOwnProperty('gifEmotes')) {
-      let ems = emotesJSON.gifEmotes;
-      for(const emoteName in ems) {
-        let emote = ems[emoteName];
-        emotes.push(new Emote(emoteName, emote.img, true, emote.size));
+      if (emotesJSON.hasOwnProperty('gifEmotes')) {
+        let ems = emotesJSON.gifEmotes;
+        for (const emoteName in ems) {
+          let emote = ems[emoteName];
+          emotes.push(new Emote(emoteName, emote.img, true, emote.size));
+        }
       }
-    }
-  })
+    });
 }
 
 const setStats = (stats) => {
@@ -803,6 +947,10 @@ const toggleFallGuys = () => {
   fallGuys = !fallGuys;
 };
 
+const toggleGnosia = () => {
+  gnosia = !gnosia;
+};
+
 const toggleSpeedrun = () => {
   speedrun = !speedrun;
   console.dir(speedrun);
@@ -810,96 +958,53 @@ const toggleSpeedrun = () => {
   if (!speedrun) {
     running = true;
     overlayQueue.push({
-      'type': 'start',
-      'time': 600,
-      'maxTime': 600,
-      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+      type: 'start',
+      time: 600,
+      maxTime: 600,
+      newOverlay: new Image(overlayCanvas.width, overlayCanvas.height),
     });
   } else {
     running = false;
     overlayQueue.push({
-      'type': 'reset',
-      'time': 600,
-      'maxTime': 600,
-      'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
-      'sound': false,
+      type: 'reset',
+      time: 600,
+      maxTime: 600,
+      newOverlay: new Image(overlayCanvas.width, overlayCanvas.height),
+      sound: false,
     });
   }
-}
-
-// Open a WebSocket that works with LiveSplit
-function startSplitsSocket() {
-  splitsSocket = new WebSocket('ws://localhost:15721');
-  splitsSocket.onopen = (event) => {
-    console.dir('Connected to LiveSplit');
-    console.dir(event);
-  };
-
-  splitsSocket.onmessage = (event) => {
-    console.dir('Message Received');
-    let data = JSON.parse(event.data);
-    let action = data.action.action;
-    console.dir(data);
-    console.dir(action);
-
-    prevTimerState = timerState;
-    timerState = data.state.timerState;
-
-    if (action === 'reset') {
-      // A run has reset
-      resetRun();
-    }
-    if (action === 'start') {
-      // A run has started
-      currentSplit = data.state.run.segments[0];
-      startRun();
-    } else if (action === 'split') {
-      // Runner has split, get split info
-      if (!currentSplit.name.includes('Win')) {
-        sessionRounds++;
-        if (currentSplit.name.includes('(Team)')) {
-          teamRounds++;
-        } else if (currentSplit.name.includes('Final Round')) {
-          for(let i = 0; i < finalLevels.length; i++) {
-            let level = finalLevels[i];
-            if(currentSplit.name.includes(level)) {
-              let finalLevelInfo = finalStats.find(e => { return e.name === level });
-              finalLevelInfo.attempts++;
-              addWin(level);
-              break;
-            }
-          }
-        }
-      }
-      currentSplit = data.state.run.segments[data.state.currentSplitIndex];
-    } else if (action === 'skip-split') {
-      currentSplit = data.state.run.segments[data.state.currentSplitIndex];
-    }
-  }
-
-  splitsSocket.onerror = (error) => {
-    console.dir(error);
-  };
-}
+};
 
 // Connect
 function connect() {
-  var heartbeatInterval = 1000 * 60; //ms between PING's
-  var reconnectInterval = 1000 * 3; //ms to wait before reconnect
-  var heartbeatHandle;
+  let heartbeatInterval = 1000 * 60; //ms between PING's
+  let reconnectInterval = 1000 * 3; //ms to wait before reconnect
+  let heartbeatHandle;
 
   // Reset session by hitting r
-  window.addEventListener("keypress", (event) => {
+  window.addEventListener('keypress', (event) => {
     if (event.key === 'r') {
       socket.emit('resetSession');
+    } else if (event.key === 'c') {
+      overlayQueue.push({
+        type: 'shift',
+        time: 600,
+        maxTime: 600,
+        newOverlay: new Image(overlayCanvas.width, overlayCanvas.height),
+      });
     } else if (event.key === 'f') {
       toggleFallGuys();
+    } else if (event.key === 'g') {
+      toggleGnosia();
+    } else if (event.key === 'u') {
+      getStats();
     } else if (event.key === 's') {
       toggleSpeedrun();
     }
   });
 
   socket = io.connect();
+
   socket.on('resetSession', (stats) => {
     setStats(stats);
   });
@@ -907,11 +1012,38 @@ function connect() {
   socket.on('diceRoll', (user) => {
     console.dir('rolling!!!');
     diceRewardQueue.push({
-      'user': user,
-      'time': 9700,
-      'maxTime': 9700,
+      user: user,
+      time: 9700,
+      maxTime: 9700,
     });
   });
+
+  socket.on('getLuck', (user) => {
+    console.dir('rolling!!!');
+    diceRewardQueue.push({
+      user: user,
+      time: 9700,
+      maxTime: 9700,
+    });
+  });
+
+  socket.on('reset', () => {
+    resetRun();
+  });
+
+  socket.on('end', () => {
+    resetRun();
+  });
+
+  socket.on('split', (split) => {
+    if (pokemon) {
+      addTrackedPokemonBySplit(split);
+    }
+  });
+
+  initPokemonSocket(socket);
+
+  socket.emit('lsConnect');
 
   // Get stats from server (not functional yet)
   getStats();
@@ -933,10 +1065,7 @@ function connect() {
   overlayCtx = overlayCanvas.getContext('2d');
   gameCanvas = document.getElementById('gameCanvas');
   gameCtx = gameCanvas.getContext('2d');
-  camCanvas = document.getElementById('camCanvas');
-  camCtx = camCanvas.getContext('2d');
   camEmote = document.getElementById('camEmote');
-  camBlack = document.getElementById('camBlack');
 
   greyDie = document.getElementById('greyDie');
 
@@ -948,22 +1077,18 @@ function connect() {
     heartbeat();
     heartbeatHandle = setInterval(heartbeat, heartbeatInterval);
 
-    fetch(
-        'https://api.twitch.tv/kraken/channel', {
-          headers: {
-            "client-id": clientId,
-            "authorization": "OAuth " + sessionStorage.twitchOAuthToken,
-            'accept': 'application/vnd.twitchtv.v5+json'
-          }
-        }
-      )
-      .then(resp => {
-        resp.json().then(channel => {
-          channelId = channel._id;
-          listen();
-        })
-      })
-
+    fetch('https://api.twitch.tv/kraken/channel', {
+      headers: {
+        'client-id': clientId,
+        authorization: 'OAuth ' + sessionStorage.twitchOAuthToken,
+        accept: 'application/vnd.twitchtv.v5+json',
+      },
+    }).then((resp) => {
+      resp.json().then((channel) => {
+        channelId = channel._id;
+        listen();
+      });
+    });
   };
 
   ws.onerror = (error) => {
@@ -971,18 +1096,18 @@ function connect() {
   };
 
   ws.onmessage = (event) => {
-    var message = JSON.parse(event.data);
+    let message = JSON.parse(event.data);
 
     if (message.type == 'RECONNECT') {
       // Attempt to reconnect after a specified period of time
       setTimeout(connect, reconnectInterval);
     } else if (message.type == 'MESSAGE') {
-      var redemption = JSON.parse(message.data.message).data.redemption;
+      let redemption = JSON.parse(message.data.message).data.redemption;
 
       console.dir(redemption.reward.id);
-      if (redemption.reward.id === "b67d2fa1-8a59-48fa-9727-c997a4734325") {
+      if (redemption.reward.id === 'b67d2fa1-8a59-48fa-9727-c997a4734325') {
         // Channel point reward for giving luck
-        var rewardUser = redemption.user.display_name;
+        let rewardUser = redemption.user.display_name;
 
         // Generate what type of luck
         let luckNum = Math.floor(Math.random() * 1000);
@@ -1007,14 +1132,14 @@ function connect() {
           luckId = 'glhf';
           luckMessage = `GLHF from ${rewardUser}!!!`;
           luckAudio = glhfAudio;
-        } else if (luckNum < 995) {
+        } else if (luckNum < 997) {
           // ~5.5% chance to curse the run
           luckId = 'curse';
           luckTime = 6000;
           luckMessage = `Oh no! ${rewardUser} cursed the run!`;
           luckAudio = cursedAudio;
         } else if (luckNum < 1000) {
-          // 0.5% chance for a gifted sub
+          // 0.3% chance for a gifted sub
           luckId = 'sub';
           luckTime = 6000;
           luckFont = '58px Arial';
@@ -1022,22 +1147,52 @@ function connect() {
           luckAudio = fanfareAudio;
         }
 
+        console.dir(luckTimeouts);
+
         // Add this to the queue if the user has not yet given luck
         if (!lucks.includes(rewardUser)) {
           rewardQueue.push({
-            'id': luckId,
-            'type': 'luck',
-            'user1': rewardUser,
-            'message': luckMessage,
-            'splitMessage': [],
-            'font': luckFont,
-            'audio': luckAudio,
-            'time': luckTime,
-            'maxTime': luckTime,
+            id: luckId,
+            type: 'luck',
+            user1: rewardUser,
+            message: luckMessage,
+            splitMessage: [],
+            font: luckFont,
+            audio: luckAudio,
+            time: luckTime,
+            maxTime: luckTime,
           });
           lucks.push(rewardUser);
+
+          let luckTO = setTimeout(() => {
+            lucks.splice(lucks.indexOf(rewardUser), 1);
+            let results = luckTimeouts.filter((luckTO) => {
+              return luckTO.user === rewardUser;
+            });
+            if (results.length > 0) {
+              luckTimeouts.splice(luckTimeouts.indexOf(results[0]), 1);
+            }
+          }, luckInterval);
+          luckTimeouts.push({
+            user: rewardUser,
+            time: Date.now(),
+            timeout: luckTO,
+            interval: luckInterval,
+          });
+        } else {
+          let results = luckTimeouts.filter((luckTO) => {
+            return luckTO.user === rewardUser;
+          });
+          console.dir(results);
+          if (results.length > 0) {
+            let timeoutOBJ = results[0];
+            timeoutOBJ.cause = 'reward';
+            socket.emit('luckTime', timeoutOBJ);
+          }
         }
-      } else if (redemption.reward.id === 'e1d249af-4baf-4644-b53e-27376e79b234') {
+      } else if (
+        redemption.reward.id === 'e1d249af-4baf-4644-b53e-27376e79b234'
+      ) {
         // Channel point reward for facecam emote
         // Split the message on spaces
         let userMsg = redemption.user_input.toLowerCase().split(' ');
@@ -1049,8 +1204,8 @@ function connect() {
             let emoteName = userMsg[i].replace(/\s/g, '');
             console.dir(emoteName);
 
-            selectedEmote = emotes.find(e => {
-              return e.name.toLowerCase() === emoteName
+            selectedEmote = emotes.find((e) => {
+              return e.name.toLowerCase() === emoteName;
             });
 
             if (selectedEmote) {
@@ -1062,34 +1217,53 @@ function connect() {
         if (selectedEmote) {
           // Add this to the queue
           camRewardQueue.push({
-            'type': 'emote',
-            'emote': selectedEmote,
-            'time': 30000,
-            'maxTime': 30000,
+            type: 'emote',
+            emote: selectedEmote,
+            time: 30000,
+            maxTime: 30000,
           });
         }
-      } else if (redemption.reward.id === '1b9fe4b3-6571-49be-b467-eb687dfd51ef') {
+      } else if (
+        redemption.reward.id === 'e41c949f-8ffb-40fa-94b4-e2cf73594bed'
+      ) {
+        // Channel point reward for PNGTuber
+
+        // Add this to the queue
+        camRewardQueue.push({
+          type: 'pngtuber',
+          time: 60000,
+          maxTime: 60000,
+        });
+      } else if (
+        redemption.reward.id === '1b9fe4b3-6571-49be-b467-eb687dfd51ef'
+      ) {
         console.dir('shift reward redeemed');
         // Channel point reward for shifting layout
         overlayQueue.push({
-          'type': 'shift',
-          'time': 600,
-          'maxTime': 600,
-          'newOverlay': new Image(overlayCanvas.width, overlayCanvas.height),
+          type: 'shift',
+          time: 600,
+          maxTime: 600,
+          newOverlay: new Image(overlayCanvas.width, overlayCanvas.height),
         });
-      } else if (redemption.reward.id === '4273cc94-01d2-44fd-8b46-0e4e970e261c') {
+      } else if (
+        redemption.reward.id === '4273cc94-01d2-44fd-8b46-0e4e970e261c'
+      ) {
         console.dir(redemption);
         // Channel point reward for d20 roll
         // Die position: 566, 862
         // Die dimensions: 172, 198
         diceRewardQueue.push({
-          'user': redemption.user,
-          'time': 9700,
-          'maxTime': 9700,
+          user: redemption.user,
+          time: 9700,
+          maxTime: 9700,
         });
-      } else if (redemption.reward.id === '28bd23f0-85d9-4f73-a6d9-6fa6ed7da060') {
+      } else if (
+        redemption.reward.id === '28bd23f0-85d9-4f73-a6d9-6fa6ed7da060'
+      ) {
         socket.emit('skipSong');
-      } else if (redemption.reward.id === 'f52487ee-c191-4d8d-be00-edcf9b622abb') {
+      } else if (
+        redemption.reward.id === 'f52487ee-c191-4d8d-be00-edcf9b622abb'
+      ) {
         socket.emit('backSong');
       }
     }
@@ -1100,9 +1274,6 @@ function connect() {
     clearInterval(heartbeatHandle);
     setTimeout(connect, reconnectInterval);
   };
-
-  startSplitsSocket();
-
 }
 
 $(function () {
@@ -1112,12 +1283,13 @@ $(function () {
     // If this has already been connected to Twitch, show the layout
     connect();
     console.dir('Connected');
+    console.dir(sessionStorage.twitchOAuthToken);
     $('.rewards').show();
   } else {
     // Not connected to Twitch, ask to connect
-    var url = authUrl()
-    $('#auth-link').attr("href", url);
-    $('.auth').show()
+    let url = authUrl();
+    $('#auth-link').attr('href', url);
+    $('.auth').show();
   }
 });
 

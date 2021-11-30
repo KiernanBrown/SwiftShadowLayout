@@ -1,0 +1,31 @@
+{
+  "loop": "???",
+  "role": "???",
+  "level": 162,
+  "stats": [
+    {
+      "stat": "Charisma",
+      "value": 32
+    },
+    {
+      "stat": "Intuition",
+      "value": 45
+    },
+    {
+      "stat": "Logic",
+      "value": 30
+    },
+    {
+      "stat": "Charm",
+      "value": 33
+    },
+    {
+      "stat": "Performance",
+      "value": 25
+    },
+    {
+      "stat": "Stealth",
+      "value": 31
+    }
+  ]
+}
